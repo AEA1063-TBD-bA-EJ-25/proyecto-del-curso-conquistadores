@@ -18,10 +18,11 @@ CREATE TABLE Niño(
     CURP CHAR(18) PRIMARY KEY FOREIGN KEY REFERENCES Persona(CURP),
     Enfermedad VARCHAR(50),
     ContactoEmergencia VARCHAR(25) NOT NULL,
-    ClaveClaseNino CHAR(15) FOREIGN KEY REFERENCES Clase(ClaveClase),
+    ClaveClaseNino INT FOREIGN KEY REFERENCES Clase(NumeroClase),
     CurpTutor CHAR(18) FOREIGN KEY REFERENCES Tutor(CURP),
-    ClaveUnidadNino VARCHAR(15) FOREIGN KEY REFERENCES Unidad(ClaveUnidad)
+    ClaveUnidadNino INT FOREIGN KEY REFERENCES Unidad(ClaveUnidad)
 )
+
 
 CREATE TABLE Directivo(
     CURP CHAR(18) PRIMARY KEY FOREIGN KEY REFERENCES Persona(CURP),
@@ -92,7 +93,7 @@ CREATE TABLE Reunion(
     Uniforme BIT NOT NULL,
     Limpieza BIT NOT NULL,
     Tareas BIT NOT NULL,
-    ClaveUnidadReunion CHAR(15) FOREIGN KEY REFERENCES Unidad(ClaveUnidad)
+    ClaveUnidadReunion INT FOREIGN KEY REFERENCES Unidad(ClaveUnidad)
 )
 
 CREATE TABLE Requisito(
@@ -109,26 +110,51 @@ VALUES ('CURP12345678901238', 'Martínez', 'Hernández', 'Ana', 'Femenino', '200
 INSERT INTO Persona (CURP, ApellidoPaterno, ApellidoMaterno, Nombres, Sexo, FechaNacimiento, Direccion, Tipo)
 VALUES ('CURP12345678901239', 'Pérez', 'Gómez', 'Carlos', 'Masculino', '1990-08-20', 'Calle Sol 789', 'Tutor');
 
-INSERT INTO Niño (CURP, Enfermedad, ContactoEmergencia, ClaveClaseNino, CurpTutor, ClaveUnidadNino)
-VALUES ('CURP12345678901234', 'Ninguna', '555-1234', 'CLASE001', 'CURPTUTOR12345678', 'UNIDAD001');
+INSERT INTO Persona (CURP, ApellidoPaterno, ApellidoMaterno, Nombres, Sexo, FechaNacimiento, Direccion, Tipo)
+VALUES ('CURP12345678901240', 'Hernández', 'Ramírez', 'Luis', 'Masculino', '1995-03-10', 'Calle Estrella 123', 'Niño');
+
+INSERT INTO Persona (CURP, ApellidoPaterno, ApellidoMaterno, Nombres, Sexo, FechaNacimiento, Direccion, Tipo)
+VALUES ('CURP12345678901241', 'Gómez', 'Sánchez', 'María', 'Femenino', '2003-07-22', 'Calle Luna 789', 'Niño');
+
+INSERT INTO Persona (CURP, ApellidoPaterno, ApellidoMaterno, Nombres, Sexo, FechaNacimiento, Direccion, Tipo)
+VALUES ('CURP12345678901242', 'López', 'Martínez', 'Pedro', 'Masculino', '1988-11-15', 'Calle Sol 456', 'Tutor');
+
+INSERT INTO Persona (CURP, ApellidoPaterno, ApellidoMaterno, Nombres, Sexo, FechaNacimiento, Direccion, Tipo)
+VALUES ('CURP12345678901243', 'Fernández', 'García', 'Ana', 'Femenino', '1992-02-28', 'Calle Marte 789', 'Tutor');
+
+INSERT INTO Persona (CURP, ApellidoPaterno, ApellidoMaterno, Nombres, Sexo, FechaNacimiento, Direccion, Tipo)
+VALUES ('CURP12345678901244', 'Ruiz', 'Hernández', 'Carlos', 'Masculino', '2001-09-05', 'Calle Venus 123', 'Niño');
+
+INSERT INTO Persona (CURP, ApellidoPaterno, ApellidoMaterno, Nombres, Sexo, FechaNacimiento, Direccion, Tipo)
+VALUES ('CURP12345678901245', 'Pérez', 'López', 'Laura', 'Femenino', '2004-12-12', 'Calle Mercurio 456', 'Niño');
 
 INSERT INTO Niño (CURP, Enfermedad, ContactoEmergencia, ClaveClaseNino, CurpTutor, ClaveUnidadNino)
-VALUES ('CURP12345678901238', 'Asma', '555-6789', 'CLASE002', 'CURP12345678901239', 'UNIDAD002');
+VALUES ('CURP12345678901234', 'Ninguna', '555-1234', 1, 'CURP12345678901239', 1);
+
+INSERT INTO Niño (CURP, Enfermedad, ContactoEmergencia, ClaveClaseNino, CurpTutor, ClaveUnidadNino)
+VALUES ('CURP12345678901238', 'Asma', '555-6789', 2, 'CURP12345678901239', 2);
 
 INSERT INTO Directivo (CURP, ROL, ClaveClubDirectivo)
-VALUES ('CURP12345678901235', 'Presidente', 'CLUB001');
+VALUES ('CURP12345678901234', 'Presidente', 'CLUB001');
 
 INSERT INTO Directivo (CURP, ROL, ClaveClubDirectivo)
-VALUES ('CURP12345678901240', 'Vicepresidente', 'CLUB002');
+VALUES ('CURP12345678901238', 'Vicepresidente', 'CLUB002');
 
 INSERT INTO Consejero (CURP, Aspiracion, ClaveClubConsejero)
-VALUES ('CURP12345678901236', 'Liderazgo', 'CLUB002');
+VALUES ('CURP12345678901244', 'Liderazgo', 'CLUB002');
 
 INSERT INTO Consejero (CURP, Aspiracion, ClaveClubConsejero)
-VALUES ('CURP12345678901241', 'Educación', 'CLUB003');
+VALUES ('CURP12345678901245', 'Educación', 'CLUB005');
+
+INSERT INTO Instructor (CURP, ClaveClubInstructor)
+VALUES ('CURP12345678901238', 'CLUB005');
+
+INSERT INTO Instructor (CURP, ClaveClubInstructor)
+VALUES ('CURP12345678901243', 'CLUB002');
+
 
 INSERT INTO Tutor (CURP, Telefono)
-VALUES ('CURPTUTOR12345678', '555-5678');
+VALUES ('CURP12345678901239', '555-5678');
 
 INSERT INTO Tutor (CURP, Telefono)
 VALUES ('CURP12345678901242', '555-9876');
@@ -146,19 +172,25 @@ INSERT INTO Unidad (ClaveUnidad, NombreUnidad)
 VALUES (2, 'Unidad Beta');
 
 INSERT INTO Club (ClaveClub, Nombre, Direccion)
-VALUES ('CLUB001', 'Club de Aventureros', 'Calle Real 456');
+VALUES ('CLUB005', 'Águilas Reales', 'Calle Real 456');
 
 INSERT INTO Club (ClaveClub, Nombre, Direccion)
-VALUES ('CLUB002', 'Club de Exploradores', 'Calle Verde 123');
+VALUES ('CLUB006', 'Beta Crucis', 'Calle Verde 123');
+
+INSERT INTO Club (ClaveClub, Nombre, Direccion)
+VALUES ('CLUB003', 'Delfines', 'Calle Lomas 912');
+
+INSERT INTO Club (ClaveClub, Nombre, Direccion)
+VALUES ('CLUB004', 'Polaris', 'Calle Rojo 637');
 
 INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)
-VALUES ('ESP001', 'Nudos', 'Supervivencia', '2025-01-01', 1, 'CURP12345678901237');
+VALUES ('ESP001', 'Nudos', 'Supervivencia', '2025-01-01', 1, 'CURP12345678901238');
 
 INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)
 VALUES ('ESP002', 'Primeros Auxilios', 'Salud', '2025-02-01', 2, 'CURP12345678901243');
 
 INSERT INTO Reunion (ClaveReunion, Fecha, Puntualidad, Asistencia, Uniforme, Limpieza, Tareas, ClaveUnidadReunion)
-VALUES ('REU001', '2025-03-09', 1, 1, 1, 1, 1, 'UNIDAD001');
+VALUES ('REU001', '2025-03-09', 1, 1, 1, 1, 1, 001);
 
 ALTER TABLE Persona
 ADD CONSTRAINT CHK_Sexo CHECK (Sexo IN ('Masculino', 'Femenino'));
@@ -171,9 +203,13 @@ SELECT * FROM Niño;
 
 SELECT * FROM Directivo;
 
+SELECT * FROM Instructor;
+
 SELECT * FROM Persona;
 
-SELECT * FROM Especialidad WHERE CurpInstructor = 'CURP12345678901237';
+SELECT * FROM Consejero;
+
+SELECT * FROM Especialidad WHERE CurpInstructor = 'CURP12345678901238';
 
 SELECT * FROM Reunion WHERE ClaveUnidadReunion = 'UNIDAD001';
 
@@ -206,3 +242,7 @@ SELECT * FROM Niño WHERE Enfermedad = 'Asma';
 SELECT * FROM Directivo WHERE ClaveClubDirectivo = 'CLUB001';
 
 SELECT * FROM Clase WHERE EdadMinima > 10;
+
+drop table niño;
+drop table club;
+DELETE from club;

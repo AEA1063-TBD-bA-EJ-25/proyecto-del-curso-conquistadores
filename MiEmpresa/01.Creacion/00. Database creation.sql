@@ -10,4 +10,3 @@ go
 
 USE New_Database
 
-C

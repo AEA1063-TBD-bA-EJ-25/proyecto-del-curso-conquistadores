@@ -128,7 +128,6 @@ VALUES ('CURP12345678901244', 'Ruiz', 'Hernández', 'Carlos', 'Masculino', '2001
 INSERT INTO Persona (CURP, ApellidoPaterno, ApellidoMaterno, Nombres, Sexo, FechaNacimiento, Direccion, Tipo)
 VALUES ('CURP12345678901245', 'Pérez', 'López', 'Laura', 'Femenino', '2004-12-12', 'Calle Mercurio 456', 'Niño');
 
-<<<<<<< HEAD
 INSERT INTO Persona (CURP, ApellidoPaterno, ApellidoMaterno, Nombres, Sexo, FechaNacimiento, Direccion, Tipo)  
 VALUES ('CURP98765432109876', 'Hernández', 'Martínez', 'Ana', 'Femenino', '1995-05-23', 'Avenida Sol 456', 'Instructor');  
 
@@ -216,16 +215,12 @@ VALUES ('CURP15935725874126', 'Fuentes', 'Lara', 'Óscar', 'Masculino', '1986-06
 INSERT INTO Persona (CURP, ApellidoPaterno, ApellidoMaterno, Nombres, Sexo, FechaNacimiento, Direccion, Tipo)  
 VALUES ('CURP35795125814735', 'Velázquez', 'Miranda', 'Daniela', 'Femenino', '2018-10-22', 'Boulevard Estrella 147', 'Niño');  
 
-
-=======
->>>>>>> refs/remotes/origin/main
 INSERT INTO Niño (CURP, Enfermedad, ContactoEmergencia, ClaveClaseNino, CurpTutor, ClaveUnidadNino)
 VALUES ('CURP12345678901234', 'Ninguna', '555-1234', 1, 'CURP12345678901239', 1);
 
 INSERT INTO Niño (CURP, Enfermedad, ContactoEmergencia, ClaveClaseNino, CurpTutor, ClaveUnidadNino)
 VALUES ('CURP12345678901238', 'Asma', '555-6789', 2, 'CURP12345678901239', 2);
 
-<<<<<<< HEAD
 INSERT INTO Niño (CURP, Enfermedad, ContactoEmergencia, ClaveClaseNino, CurpTutor, ClaveUnidadNino)  
 VALUES ('CURP98765432109876', 'Asma', '555-6789', 2, 'CURP98765432109879', 3);  
 
@@ -304,16 +299,12 @@ VALUES ('CURP95125836975314', 'Alergia a los mariscos', '555-2581', 4, 'CURP9512
 INSERT INTO Niño (CURP, Enfermedad, ContactoEmergencia, ClaveClaseNino, CurpTutor, ClaveUnidadNino)  
 VALUES ('CURP35715985214785', 'Ninguna', '555-7892', 5, 'CURP35715985214789', 2);  
 
-
-=======
->>>>>>> refs/remotes/origin/main
 INSERT INTO Directivo (CURP, ROL, ClaveClubDirectivo)
 VALUES ('CURP12345678901234', 'Presidente', 'CLUB001');
 
 INSERT INTO Directivo (CURP, ROL, ClaveClubDirectivo)
 VALUES ('CURP12345678901238', 'Vicepresidente', 'CLUB002');
 
-<<<<<<< HEAD
 INSERT INTO Directivo (CURP, ROL, ClaveClubDirectivo)  
 VALUES ('CURP98765432109876', 'Secretario', 'CLUB002');  
 
@@ -401,16 +392,12 @@ VALUES ('CURP35795125814735', 'Vicepresidente', 'CLUB029');
 INSERT INTO Directivo (CURP, ROL, ClaveClubDirectivo)  
 VALUES ('CURP95135725865478', 'Secretario', 'CLUB030');  
 
-
-=======
->>>>>>> refs/remotes/origin/main
 INSERT INTO Consejero (CURP, Aspiracion, ClaveClubConsejero)
 VALUES ('CURP12345678901244', 'Liderazgo', 'CLUB002');
 
 INSERT INTO Consejero (CURP, Aspiracion, ClaveClubConsejero)
 VALUES ('CURP12345678901245', 'Educación', 'CLUB005');
 
-<<<<<<< HEAD
 INSERT INTO Consejero (CURP, Aspiracion, ClaveClubConsejero)  
 VALUES ('CURP98765432109876', 'Empoderamiento', 'CLUB001');  
 
@@ -501,16 +488,12 @@ VALUES ('CURP95135725865478', 'Innovación', 'CLUB029');
 INSERT INTO Consejero (CURP, Aspiracion, ClaveClubConsejero)  
 VALUES ('CURP12345678912345', 'Liderazgo', 'CLUB030');  
 
-
-=======
->>>>>>> refs/remotes/origin/main
 INSERT INTO Instructor (CURP, ClaveClubInstructor)
 VALUES ('CURP12345678901238', 'CLUB005');
 
 INSERT INTO Instructor (CURP, ClaveClubInstructor)
 VALUES ('CURP12345678901243', 'CLUB002');
 
-<<<<<<< HEAD
 INSERT INTO Instructor (CURP, ClaveClubInstructor)  
 VALUES ('CURP98765432109875', 'CLUB001');  
 
@@ -601,17 +584,12 @@ VALUES ('CURP95135725865477', 'CLUB029');
 INSERT INTO Instructor (CURP, ClaveClubInstructor)  
 VALUES ('CURP12345678912344', 'CLUB030');  
 
-
-=======
->>>>>>> refs/remotes/origin/main
-
 INSERT INTO Tutor (CURP, Telefono)
 VALUES ('CURP12345678901239', '555-5678');
 
 INSERT INTO Tutor (CURP, Telefono)
 VALUES ('CURP12345678901242', '555-9876');
 
-<<<<<<< HEAD
 INSERT INTO Tutor (CURP, Telefono)  
 VALUES ('CURP98765432109877', '555-2345');  
 
@@ -702,16 +680,12 @@ VALUES ('CURP95135725865479', '555-3782');
 INSERT INTO Tutor (CURP, Telefono)  
 VALUES ('CURP12345678912346', '555-8290');  
 
-
-=======
->>>>>>> refs/remotes/origin/main
 INSERT INTO Clase (NumeroClase, Color, EdadMinima)
 VALUES (1, 'Rojo', 10);
 
 INSERT INTO Clase (NumeroClase, Color, EdadMinima)
 VALUES (2, 'Azul', 12);
 
-<<<<<<< HEAD
 INSERT INTO Clase (NumeroClase, Color, EdadMinima)  
 VALUES (1, 'Rojo', 10);  
 
@@ -803,15 +777,12 @@ INSERT INTO Clase (NumeroClase, Color, EdadMinima)
 VALUES (30, 'Blanco Perla', 9);  
 
 
-=======
->>>>>>> refs/remotes/origin/main
 INSERT INTO Unidad (ClaveUnidad, NombreUnidad)
 VALUES (1, 'Unidad Alfa');
 
 INSERT INTO Unidad (ClaveUnidad, NombreUnidad)
 VALUES (2, 'Unidad Beta');
 
-<<<<<<< HEAD
 INSERT INTO Unidad (ClaveUnidad, NombreUnidad)  
 VALUES (1, 'Unidad Alpha');  
 
@@ -902,16 +873,12 @@ VALUES (29, 'Unidad Lambda Epsilon');
 INSERT INTO Unidad (ClaveUnidad, NombreUnidad)  
 VALUES (30, 'Unidad Delta Omega');  
 
-
-=======
->>>>>>> refs/remotes/origin/main
 INSERT INTO Club (ClaveClub, Nombre, Direccion)
 VALUES ('CLUB005', 'Águilas Reales', 'Calle Real 456');
 
 INSERT INTO Club (ClaveClub, Nombre, Direccion)
 VALUES ('CLUB006', 'Beta Crucis', 'Calle Verde 123');
 
-<<<<<<< HEAD
 INSERT INTO Club (ClaveClub, Nombre, Direccion)  
 VALUES ('CLUB001', 'Leones Dorados', 'Avenida Central 789');  
 
@@ -1002,15 +969,12 @@ VALUES ('CLUB029', 'Rays del Mar', 'Calle del Mar 890');
 INSERT INTO Club (ClaveClub, Nombre, Direccion)  
 VALUES ('CLUB030', 'Guerreros del Desierto', 'Calle desértica 456');  
 
-=======
->>>>>>> refs/remotes/origin/main
 INSERT INTO Club (ClaveClub, Nombre, Direccion)
 VALUES ('CLUB003', 'Delfines', 'Calle Lomas 912');
 
 INSERT INTO Club (ClaveClub, Nombre, Direccion)
 VALUES ('CLUB004', 'Polaris', 'Calle Rojo 637');
 
-<<<<<<< HEAD
 
 INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)
 VALUES ('ESP001', 'Nudos', 'Supervivencia', '2025-01-01', 1, 'CURP12345678901238');
@@ -1203,17 +1167,104 @@ INSERT INTO Reunion (ClaveReunion, Fecha, Puntualidad, Asistencia, Uniforme, Lim
 VALUES ('REU030', '2025-04-07', 1, 1, 1, 1, 0, 030);  
 
 
-=======
+
 INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)
 VALUES ('ESP001', 'Nudos', 'Supervivencia', '2025-01-01', 1, 'CURP12345678901238');
 
 INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)
 VALUES ('ESP002', 'Primeros Auxilios', 'Salud', '2025-02-01', 2, 'CURP12345678901243');
 
-INSERT INTO Reunion (ClaveReunion, Fecha, Puntualidad, Asistencia, Uniforme, Limpieza, Tareas, ClaveUnidadReunion)
-VALUES ('REU001', '2025-03-09', 1, 1, 1, 1, 1, 001);
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP001', 'Nudos', 'Supervivencia', '2025-01-01', 1, 'CURP12345678901238');  
 
->>>>>>> refs/remotes/origin/main
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP002', 'Primeros Auxilios', 'Salud', '2025-02-15', 2, 'CURP12345678901239');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP003', 'Técnicas de Navegación', 'Supervivencia', '2025-03-10', 1, 'CURP12345678901240');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP004', 'Caza y Pesca', 'Supervivencia', '2025-04-20', 3, 'CURP12345678901241');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP005', 'Escalada', 'Aventura', '2025-05-05', 2, 'CURP12345678901242');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP006', 'Botánica', 'Naturaleza', '2025-06-15', 1, 'CURP12345678901243');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP007', 'Orientación', 'Supervivencia', '2025-07-10', 2, 'CURP12345678901244');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP008', 'Cocina de Campamento', 'Supervivencia', '2025-08-01', 1, 'CURP12345678901245');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP009', 'Fotografía de Naturaleza', 'Arte', '2025-09-20', 3, 'CURP12345678901246');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP010', 'Supervivencia en el Agua', 'Supervivencia', '2025-10-10', 2, 'CURP12345678901247');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP011', 'Técnicas de Camuflaje', 'Supervivencia', '2025-11-15', 1, 'CURP12345678901248');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP012', 'Trekking', 'Aventura', '2025-12-01', 2, 'CURP12345678901249');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP013', 'Vela', 'Aventura', '2026-01-10', 1, 'CURP12345678901250');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP014', 'Montañismo', 'Aventura', '2026-02-25', 3, 'CURP12345678901251');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP015', 'Rappel', 'Aventura', '2026-03-30', 2, 'CURP12345678901252');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP016', 'Autodefensa', 'Salud', '2026-04-10', 3, 'CURP12345678901253');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP017', 'Técnicas de Supervivencia en el Desierto', 'Supervivencia', '2026-05-15', 2, 'CURP12345678901254');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP018', 'Navegación Nocturna', 'Supervivencia', '2026-06-20', 1, 'CURP12345678901255');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP019', 'Buceo', 'Aventura', '2026-07-25', 2, 'CURP12345678901256');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP020', 'Rescate en Montaña', 'Supervivencia', '2026-08-30', 3, 'CURP12345678901257');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP021', 'Ciclismo de Montaña', 'Aventura', '2026-09-05', 1, 'CURP12345678901258');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP022', 'Pesca con Mosca', 'Supervivencia', '2026-10-10', 2, 'CURP12345678901259');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP023', 'Canoas', 'Aventura', '2026-11-15', 1, 'CURP12345678901260');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP024', 'Observación de Fauna', 'Naturaleza', '2026-12-01', 3, 'CURP12345678901261');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP025', 'Técnicas de Refugio', 'Supervivencia', '2027-01-10', 2, 'CURP12345678901262');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP026', 'Cruz Roja', 'Salud', '2027-02-05', 1, 'CURP12345678901263');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP027', 'Pesca Submarina', 'Supervivencia', '2027-03-20', 3, 'CURP12345678901264');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP028', 'Construcción de Refugios', 'Supervivencia', '2027-04-25', 2, 'CURP12345678901265');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP029', 'Supervivencia en la Jungla', 'Supervivencia', '2027-05-30', 3, 'CURP12345678901266');  
+
+INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)  
+VALUES ('ESP030', 'Kárate', 'Deportes', '2027-06-10', 1, 'CURP12345678901267');  
+
+
 ALTER TABLE Persona
 ADD CONSTRAINT CHK_Sexo CHECK (Sexo IN ('Masculino', 'Femenino'));
 

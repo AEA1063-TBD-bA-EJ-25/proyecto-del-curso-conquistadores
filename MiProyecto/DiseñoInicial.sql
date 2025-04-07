@@ -1383,3 +1383,149 @@ select Nombres
 from Persona
 where CURP in (select CURP from Niño 
 where ClaveClaseNino = 1);
+
+
+--Conocer si los tutores tienen varios niños asignados
+select 
+   t.CURP,
+  CONCAT(p.Nombres, ' ', p.ApellidoPaterno) AS Nombre_tutor,
+   COUNT(n.CURP) AS Niños_asignados
+from Tutor t
+join Niño n ON t.CURP = n.CurpTutor
+join Persona p ON t.CURP = p.CURP
+group by t.CURP, p.Nombres, p.ApellidoPaterno
+having count(n.CURP) > 1;
+ 
+--Consulta para conocer los clubs que están activos
+SELECT
+  C.ClaveClub,
+   C.Nombre AS NombreClub,
+   COUNT(DISTINCT D.CURP) AS CantidadDirectivos,
+  COUNT(DISTINCT I.CURP) AS CantidadInstructores,
+  COUNT(DISTINCT CS.CURP) AS CantidadConsejeros
+FROM
+   Club AS C
+LEFT JOIN
+  Directivo AS D ON C.ClaveClub = D.ClaveClubDirectivo
+LEFT JOIN
+  Instructor AS I ON C.ClaveClub = I.ClaveClubInstructor
+LEFT JOIN
+  Consejero AS CS ON C.ClaveClub = CS.ClaveClubConsejero
+GROUP BY
+  C.ClaveClub, C.Nombre
+HAVING
+   COUNT(DISTINCT D.CURP) > 0 OR COUNT(DISTINCT I.CURP) > 0 OR COUNT(DISTINCT CS.CURP) > 0;
+ 
+--Conocer el nombre de los clubs por estado
+SELECT DISTINCT
+   C.Nombre AS NombreClub
+FROM
+   Club AS C
+LEFT JOIN
+  Directivo AS D ON C.ClaveClub = D.ClaveClubDirectivo
+LEFT JOIN
+  Instructor AS I ON C.ClaveClub = I.ClaveClubInstructor
+LEFT JOIN
+  Consejero AS CS ON C.ClaveClub = CS.ClaveClubConsejero
+WHERE
+   D.CURP IS NOT NULL OR I.CURP IS NOT NULL OR CS.CURP IS NOT NULL
+ORDER BY
+  NombreClub;
+ 
+--Conocer cuales clases hay disponibles y la edad mínima de ingreso
+SELECT NumeroClase, EdadMinima FROM Clase;
+ 
+-- nombres de los consejeros que pertenecen a un club específico
+SELECT Nombres
+FROM Persona
+WHERE CURP IN (SELECT CURP FROM Consejero WHERE ClaveClubConsejero = 'CLUB002');
+
+-- suma de los niveles de todas las especialidades
+SELECT sum(Nivel) AS SumaNiveles
+FROM Especialidad;
+
+-- promedio de edad de las personas
+SELECT AVG(DATEDIFF(YEAR, FechaNacimiento, GETDATE())) AS PromedioEdad
+FROM Persona;
+
+-- nombres completos de los instructores
+SELECT CURP, Nombres + ' ' + ApellidoPaterno + ' ' + ApellidoMaterno AS NombreCompleto
+FROM Persona
+WHERE CURP IN (SELECT CURP FROM Instructor);
+
+--edad de los niños
+SELECT CURP, Nombres, DATEDIFF(YEAR, FechaNacimiento, GETDATE()) AS Edad
+FROM Persona
+WHERE Tipo = 'Niño';
+
+-- niños con su clase y unidad
+SELECT N.CURP, P.Nombres, P.ApellidoPaterno, P.ApellidoMaterno, C.Color AS ClaseColor, U.NombreUnidad
+FROM Niño N
+JOIN Persona P ON N.CURP = P.CURP
+JOIN Clase C ON N.ClaveClaseNino = C.NumeroClase
+JOIN Unidad U ON N.ClaveUnidadNino = U.ClaveUnidad;
+
+-- reuniones con su unidad
+SELECT R.ClaveReunion, R.Fecha, U.NombreUnidad
+FROM Reunion R
+JOIN Unidad U ON R.ClaveUnidadReunion = U.ClaveUnidad;
+
+-- Contar el número de niños
+SELECT COUNT(*) AS TotalNinos
+FROM Niño;
+
+-- Contar el número de tutores
+SELECT COUNT(*) AS TotalTutores
+FROM Tutor;
+
+-- Contar el número de instructores
+SELECT COUNT(*) AS TotalInstructores
+FROM Instructor;
+
+-- personas que son niños o tutores
+SELECT CURP, Nombres, ApellidoPaterno, ApellidoMaterno
+FROM Persona
+WHERE Tipo = 'Niño'
+UNION
+SELECT CURP, Nombres, ApellidoPaterno, ApellidoMaterno
+FROM Persona
+WHERE Tipo = 'Tutor';
+
+--personas que son tanto instructores como directivos
+SELECT I.CURP, P.Nombres, P.ApellidoPaterno, P.ApellidoMaterno
+FROM Instructor I
+JOIN Persona P ON I.CURP = P.CURP
+INTERSECT
+SELECT D.CURP, P.Nombres, P.ApellidoPaterno, P.ApellidoMaterno
+FROM Directivo D
+JOIN Persona P ON D.CURP = P.CURP;
+
+-- personas que son niños pero no tutores
+SELECT CURP, Nombres, ApellidoPaterno, ApellidoMaterno
+FROM Persona
+WHERE Tipo = 'Niño'
+EXCEPT
+SELECT CURP, Nombres, ApellidoPaterno, ApellidoMaterno
+FROM Persona
+WHERE Tipo = 'Tutor';
+
+-- personas que son niños y tienen una enfermedad específica
+SELECT P.CURP, P.Nombres, P.ApellidoPaterno, P.ApellidoMaterno
+FROM Persona P
+WHERE P.Tipo = 'Niño' AND P.CURP IN (SELECT N.CURP FROM Niño N WHERE N.Enfermedad = 'Asma');
+
+-- clubes con el número de directivos en cada club
+SELECT C.ClaveClub, C.Nombre, 
+       (SELECT COUNT(*) FROM Directivo D WHERE D.ClaveClubDirectivo = C.ClaveClub) AS NumeroDirectivos
+FROM Club C;
+
+-- clases con el número de niños en cada clase
+SELECT C.NumeroClase, C.Color, C.EdadMinima, 
+       (SELECT COUNT(*) FROM Niño N WHERE N.ClaveClaseNino = C.NumeroClase) AS NumeroNinos
+FROM Clase C;
+
+-- consejeros y el nombre de su club
+SELECT P.CURP, P.Nombres, P.ApellidoPaterno, P.ApellidoMaterno, 
+       (SELECT C.Nombre FROM Club C WHERE C.ClaveClub = CO.ClaveClubConsejero) AS NombreClub
+FROM Persona P
+JOIN Consejero CO ON P.CURP = CO.CURP;

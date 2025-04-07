@@ -1655,3 +1655,4 @@ JOIN Persona p ON n.CURP = p.CURP
 JOIN Tutor t ON n.CurpTutor = t.CURP
 JOIN Persona pt ON t.CURP = pt.CURP;
 
+--

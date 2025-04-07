@@ -246,3 +246,67 @@ SELECT * FROM Clase WHERE EdadMinima > 10;
 drop table niño;
 drop table club;
 DELETE from club;
+
+select *
+from Niño
+select *
+from Persona
+
+---- 02. Consultas ----
+-- para saber la información de los papás y de los niños
+select n.CURP, p.Nombres, p.ApellidoPaterno, p.ApellidoMaterno, t.Telefono
+from Niño n
+join Persona p on n.CURP = p.CURP
+join Tutor t on n.CurpTutor = t.CURP
+
+
+-- para saber sobre los instructores junto con el nombre de club
+select i.CURP, p.Nombres, p.ApellidoPaterno, p.ApellidoMaterno, cl.Nombre as NombreClub
+from Instructor i
+join Persona p ON i.CURP = p.CURP
+join Club cl ON i.ClaveClubInstructor = cl.ClaveClub;
+
+-- consulta para nombres de los tutores que tienen niños con asma
+select Nombres
+from Persona
+where CURP IN (SELECT CurpTutor FROM Niño WHERE Enfermedad = 'Asma');
+
+-- conocer cuantos niños hay 
+select ClaveClaseNino, COUNT(*) AS NumeroNiños
+from Niño
+group BY ClaveClaseNino;
+
+-- cuantos tutores
+select COUNT(*) AS NumeroTutores
+from Tutor;
+
+-- niños y sus tutores
+with NinosTutores AS (
+    select n.CURP, p.Nombres, p.ApellidoPaterno, p.ApellidoMaterno, t.Telefono
+    from Niño n
+    join Persona p ON n.CURP = p.CURP
+    join Tutor t ON n.CurpTutor = t.CURP
+) select * from NinosTutores
+
+-- variable CURP del niño 
+declare @CurpNino CHAR(18) = 'CURP12345678901234';
+select p.Nombres, p.ApellidoPaterno, p.ApellidoMaterno, n.Enfermedad
+from Persona p
+join Niño n ON p.CURP = n.CURP
+where p.CURP = @CurpNino;
+
+-- nombres completos de  tutores
+select CURP, Nombres + ' ' + ApellidoPaterno + ' ' + ApellidoMaterno AS NombreCompleto
+from Persona
+where Tipo = 'Tutor';
+
+--conocer la edad de los consejeros
+select CURP, Nombres, DATEDIFF(YEAR, FechaNacimiento, GETDATE()) AS Edad
+from Persona
+where CURP in (SELECT CURP FROM Consejero);
+
+-- niños que pertenecen a la clase 1
+select Nombres
+from Persona
+where CURP in (select CURP from Niño 
+where ClaveClaseNino = 1);

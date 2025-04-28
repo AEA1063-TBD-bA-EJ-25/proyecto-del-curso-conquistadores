@@ -1325,12 +1325,7 @@ from Niño
 select *
 from Persona
 
-<<<<<<< HEAD
----- 02. CONSULTAS ----
-
-=======
 ---- 02. Consultas ----
->>>>>>> refs/remotes/origin/main
 -- para saber la información de los papás y de los niños
 select n.CURP, p.Nombres, p.ApellidoPaterno, p.ApellidoMaterno, t.Telefono
 from Niño n
@@ -1391,14 +1386,7 @@ where ClaveClaseNino = 1);
 
 
 --Conocer si los tutores tienen varios niños asignados
-<<<<<<< HEAD
 select t.CURP, CONCAT(p.Nombres, ' ', p.ApellidoPaterno) AS Nombre_tutor, COUNT(n.CURP) AS Niños_asignados
-=======
-select 
-   t.CURP,
-  CONCAT(p.Nombres, ' ', p.ApellidoPaterno) AS Nombre_tutor,
-   COUNT(n.CURP) AS Niños_asignados
->>>>>>> refs/remotes/origin/main
 from Tutor t
 join Niño n ON t.CURP = n.CurpTutor
 join Persona p ON t.CURP = p.CURP
@@ -1537,7 +1525,7 @@ FROM Clase C;
 SELECT P.CURP, P.Nombres, P.ApellidoPaterno, P.ApellidoMaterno, 
        (SELECT C.Nombre FROM Club C WHERE C.ClaveClub = CO.ClaveClubConsejero) AS NombreClub
 FROM Persona P
-<<<<<<< HEAD
+
 JOIN Consejero CO ON P.CURP = CO.CURP;
 
 -- Consulta para saber que niños nacieron en verano 
@@ -1666,5 +1654,3 @@ FROM Niño n
 JOIN Persona p ON n.CURP = p.CURP
 JOIN Tutor t ON n.CurpTutor = t.CURP
 JOIN Persona pt ON t.CURP = pt.CURP;
-
---edd

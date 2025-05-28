@@ -1355,4 +1355,62 @@ from Niño N
 join Persona P on N.CURP = P.CURP
 where N.Enfermedad is not null and N.Enfermedad <> ' ';
 
---
+--05- Conocer la cantidad de niños que hay por clase
+select C.NumeroClase,
+count(N.CURP) as TotalNiños
+from Clase C
+left join Niño N on N.ClaveClaseNino = C.NumeroClase
+group by C.NumeroClase;
+
+--06- Imprimir las listas de niños que tiene a cargo el tutor
+select T.CURP, P.Nombres + ' '+ P.ApellidoPaterno as NombreTutor,
+count(N.CURP) as NumeroNiños
+from Tutor T
+join Persona P on T.CURP = P.CURP
+left join Niño N on T.CURP = N.CurpTutor
+group by T.CURP, P.Nombres, P.ApellidoPaterno;
+
+--07- Conocer quienes han sido directivos en más de un club y conocer su experiencia
+select H.curpPersona, P.Nombres + ' '+ P.ApellidoPaterno as Nombre,
+count(distinct D.ClaveClubDirectivo) as ClubesDistintos
+from Historial H
+join Persona P on H.CurpPersona = P.CURP
+join Directivo D on D.CURP = H.CurpPersona
+group by H.CurpPersona, P.Nombres, P.ApellidoPaterno
+having count(Distinct D.ClaveDirectivo) > 1;
+
+--08- revisar la frecuencia de reuniones recientes de una unidad en el ultimo semestre
+--en el ejemplo el código de la clase es 100(es hipotetico)
+select ClaveReunion, Fecha
+from Reunion
+where ClaveUnidadReunion = 100
+and Fecha >= Dateadd(month, -6, getdate());
+
+--10- Consultar cuantas especialidades existen por área
+select Area, 
+count(*) as TotalEspecialidades
+from Especialidad
+group by Area;
+
+--09- Todos los niños que no presenten alguna enfermedad registrada
+select P.Nombres, P.ApellidoPaterno, P.ApellidoMaterno
+from Niño N
+join Persona P on N.CURP = P.CURP
+where N.Enfermedad is null or N.Enfermedad = '';
+
+--10- mostrar los tutores que tiene a más de un hijo en diferentes unidades
+Select T.CURP, P.Nombres,
+count(distinct N.ClaveUnidadNino) as Unidades
+from Tutor T
+join Persona P on T.CURP = P.CURP
+join Niño N on T.CURP = N.CurpTutor
+group by T.CURP, P.Nombres
+having count(distinct N.ClaveUnidadNino) > 1;
+
+--11- Mostrar las especialidades que tienen más de tres requisitos
+select E.Nombre,
+count(R.ClaveRequisito) as TotalRequisitos
+from Especialidad E
+join Requisito R on E.ClaveEspecialidad = R.ClaveEspecialidadRequisito
+group by E.Nombre
+Having count(R.ClaveRequsiito) > 3;

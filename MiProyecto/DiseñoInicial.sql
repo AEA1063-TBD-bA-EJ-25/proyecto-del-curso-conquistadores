@@ -1414,3 +1414,103 @@ from Especialidad E
 join Requisito R on E.ClaveEspecialidad = R.ClaveEspecialidadRequisito
 group by E.Nombre
 Having count(R.ClaveRequsiito) > 3;
+
+--12- Conocer quienes son los instructores que no tienen ninguna especialidad
+-- para impartir
+select P.Nombres, P.ApellidoPaterno
+from Instructor I
+join Persona.P on I.CURP = P.CURP
+where I.CURP not in(select distinct CurpInstructor
+                    from Especialidad);
+
+--13- Mostrar la lista de los alumnos inscritos en la clase con 
+--mayor cantidad de inscritos
+select P.Nombres, P.ApellidoPaterno, C.NumeroClase
+from Niño N
+join Persona p on N.CURP = P.CURP
+join Clase C on N.ClaveClaseNino = C.NumeroClase
+where C.NumeroClase = (select TOP 1 ClaveClaseNino
+                    from Niño
+                    group by ClaveClaseNino
+                    order by count(*) desc);
+
+--14- contar cuantas especialidades tiene cada área
+with EspecialidadesPorArea as (select Area, count(*) as Total
+                            from Especialidad
+                            group by Area)
+select Area, Total
+from EspecialidadesPorArea
+order by Total desc;
+
+--15- Saber que niños cumplen años en el siguiente mes
+--de su consulta
+select P.Nombres, P.ApellidoPaterno, P.FechaNacimiento
+from Persona P
+join Niño N on P.CURP = N.CURP
+where month (P.FechaNacimiento) = month(getdate());
+
+--16- Mostrar los clubes que se encuentran activos consultando
+--su historial de actividades
+select C.ClaveClub, C.Nombre, min(H.FechaInicio) as Inicio, max(H.FechaFin) as Fin
+from Club C
+join Directivo D on C.ClaveClub = D.ClaveClubDirectivo
+join Historial H on D.CURP = H.CurpPersona
+where getdate() between H.FechaInicio and H.FechaFin
+group by C.ClaveClub, C.Nombre;
+
+--17- Calcular la edad de cada niño
+select P.Nombres, P.ApellidoPaterno, P.ApellidoMaterno,
+datediff(year, P.FechaNacimiento, getdate())
+as Edad
+from Persona P
+join Niño N on P.CURP = N.CURP;
+
+--18- Desplegar el historial de la duración de una persona en días
+select H.NumeroHistorial, P.Nombres, P.ApellidoPaterno, datediff(day, H.FechaInicio, H.FechaFin)
+as DiasDeServicio
+from Historial H
+join Persona P on H.CurpPersona = P.CURP;
+
+--19- Saber cuales especialidades han sido aceptadas antes
+--del 2015
+select ClaveEspecialidad, Nombre, Area, FechaAceptacion
+from Especialidad 
+where year (FechaAceptacion) < 2000;
+
+--20- Mostrar el lema de las unidades en mayúsculas
+select ClaveUnidad, NombreUnidad, upper(Lema) 
+as LemaMayusculas
+from Unidad;
+
+--21- Mostrar el nombre completo de todos los niños
+select P.CURP, CONCAT(P.Nombres, ' ', P.ApellidoPaterno, ' ', P.ApellidoMaterno)
+as NombreCompleto
+from Persona P
+join Niño N on P.CURP = N.CURP;
+
+--22- Crear un código uniendo el área y nivel de la especialidad
+--para mejores busquedas
+select ClaveEspecialidad, Nombre, 
+concat(left(Area, 2), '- ', Nivel)
+as CodigoEspecialidad
+from Especialidad;
+
+--23-Clasificar el nivel de dificultad de las especialidades
+select Nombre, Nivel,
+case
+    when Nivel <= 2 then 'Básico'
+    when Nivel = 3 then 'Intermedio'
+    else 'Avanzado'
+end as Dificultad
+from Especialidad;
+
+--24- Mostrar el sexo, pasar de M/F a Masculino/Femenino
+select CURP, Nombres, ApellidoPaterno,
+case 
+    when Sexo = 'M' then 'Masculino'
+    when Sexo = 'F' then 'Femenino'
+    else 'No definido'
+end as SexoCompleto
+from Persona;
+
+--24-

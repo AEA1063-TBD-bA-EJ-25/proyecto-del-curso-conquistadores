@@ -1513,4 +1513,2121 @@ case
 end as SexoCompleto
 from Persona;
 
---24-
+
+--  ¿Quiénes son los niños más grandes y más pequeños del club?
+SELECT CONCAT(p.Nombres, ' ', p.ApellidoPaterno, ' ', p.ApellidoMaterno) AS NombreCompleto,
+       DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) AS Edad
+FROM Persona p
+JOIN Niño n ON p.CURP = n.CURP
+ORDER BY Edad DESC;
+
+--  ¿Qué tutores tienen a su cargo más de 3 niños?
+SELECT t.CURP, p.Nombres, p.ApellidoPaterno, p.ApellidoMaterno, COUNT(n.CURP) AS NinosAsignados
+FROM Tutor t
+JOIN Persona p ON t.CURP = p.CURP
+JOIN Niño n ON t.CURP = n.CurpTutor
+GROUP BY t.CURP, p.Nombres, p.ApellidoPaterno, p.ApellidoMaterno
+HAVING COUNT(n.CURP) > 3;
+
+--  ¿Cuántos directivos tiene cada club?
+SELECT c.Nombre, COUNT(d.CURP) AS TotalDirectivos
+FROM Club c
+LEFT JOIN Directivo d ON c.ClaveClub = d.ClaveClubDirectivo
+GROUP BY c.Nombre;
+
+--  ¿Qué niños tienen enfermedades y quién es su tutor?
+SELECT p.Nombres AS NombreNino, n.Enfermedad, pt.Nombres AS NombreTutor
+FROM Niño n
+JOIN Persona p ON n.CURP = p.CURP
+JOIN Persona pt ON n.CurpTutor = pt.CURP
+WHERE n.Enfermedad IS NOT NULL AND n.Enfermedad <> 'Ninguna';
+
+--  ¿Cuál es la edad promedio de los niños en cada clase?
+SELECT c.Color, AVG(DATEDIFF(YEAR, p.FechaNacimiento, GETDATE())) AS EdadPromedio
+FROM Clase c
+JOIN Niño n ON c.NumeroClase = n.ClaveClaseNino
+JOIN Persona p ON n.CURP = p.CURP
+GROUP BY c.Color;
+
+--  ¿Qué instructores no tienen ninguna especialidad asignada?
+SELECT i.CURP, p.Nombres, p.ApellidoPaterno, p.ApellidoMaterno
+FROM Instructor i
+JOIN Persona p ON i.CURP = p.CURP
+LEFT JOIN Especialidad e ON i.CURP = e.CurpInstructor
+WHERE e.ClaveEspecialidad IS NULL;
+
+--  ¿Qué niños han cambiado de unidad más de una vez?
+SELECT CURP, COUNT(*) AS CambiosUnidad
+FROM AuditoriaCambioUnidadNino
+GROUP BY CURP
+HAVING COUNT(*) > 1;
+
+--  ¿Qué clubes tienen consejeros con más de dos unidades a cargo?
+SELECT c.Nombre, COUNT(u.ClaveUnidad) AS Unidades
+FROM Club c
+JOIN Consejero co ON c.ClaveClub = co.ClaveClubConsejero
+JOIN Unidad u ON co.CURP = u.CurpConsejero
+GROUP BY c.Nombre
+HAVING COUNT(u.ClaveUnidad) > 2;
+
+--  ¿Qué niños tiene cada tutor? (en una sola fila por tutor)
+SELECT t.CURP,
+       p.Nombres + ' ' + p.ApellidoPaterno AS NombreTutor,
+       STRING_AGG(pn.Nombres + ' ' + pn.ApellidoPaterno, ', ') AS Ninos
+FROM Tutor t
+JOIN Persona p ON t.CURP = p.CURP
+LEFT JOIN Niño n ON t.CURP = n.CurpTutor
+LEFT JOIN Persona pn ON n.CURP = pn.CURP
+GROUP BY t.CURP, p.Nombres, p.ApellidoPaterno;
+
+--  ¿Cuántos niños tienen cada tipo de enfermedad?
+SELECT Enfermedad, COUNT(*) AS Total
+FROM Niño
+WHERE Enfermedad IS NOT NULL AND Enfermedad <> 'Ninguna'
+GROUP BY Enfermedad;
+
+--  ¿Quién es el presidente de cada club?
+SELECT c.Nombre AS Club, 
+       COALESCE(p.Nombres + ' ' + p.ApellidoPaterno, 'Sin presidente') AS Presidente
+FROM Club c
+LEFT JOIN Directivo d ON c.ClaveClub = d.ClaveClubDirectivo AND d.ROL = 'Presidente'
+LEFT JOIN Persona p ON d.CURP = p.CURP;
+
+--  ¿Hay niños sin tutor asignado?
+SELECT p.Nombres, p.ApellidoPaterno, p.ApellidoMaterno
+FROM Niño n
+JOIN Persona p ON n.CURP = p.CURP
+WHERE n.CurpTutor IS NULL;
+
+--  ¿Qué tutores tienen niños con enfermedades graves?
+SELECT DISTINCT t.CURP, p.Nombres, p.ApellidoPaterno
+FROM Tutor t
+JOIN Persona p ON t.CURP = p.CURP
+JOIN Niño n ON t.CURP = n.CurpTutor
+WHERE n.Enfermedad IN ('Epilepsia', 'Diabetes', 'Problemas cardíacos');
+
+--  ¿A qué clase pertenece cada niño?
+SELECT p.Nombres, p.ApellidoPaterno, c.Color AS Clase
+FROM Niño n
+JOIN Persona p ON n.CURP = p.CURP
+JOIN Clase c ON n.ClaveClaseNino = c.NumeroClase;
+
+--  ¿Qué clubes tienen un tesorero?
+SELECT DISTINCT c.Nombre
+FROM Club c
+JOIN Directivo d ON c.ClaveClub = d.ClaveClubDirectivo
+WHERE d.ROL = 'Tesorero';
+
+--  ¿Qué niños han sido dados de baja y cuándo?
+SELECT p.Nombres, p.ApellidoPaterno, h.FechaFin AS FechaBaja
+FROM Historial h
+JOIN Persona p ON h.CurpPersona = p.CURP;
+
+--  ¿Cuál es el promedio de niños por tutor?
+SELECT AVG(NinosPorTutor) AS Promedio
+FROM (
+  SELECT COUNT(*) AS NinosPorTutor
+  FROM Tutor t
+  LEFT JOIN Niño n ON t.CURP = n.CurpTutor
+  GROUP BY t.CURP
+) AS Sub;
+
+--  ¿Cuántas especialidades imparte cada instructor?
+SELECT p.Nombres, p.ApellidoPaterno, COUNT(e.ClaveEspecialidad) AS TotalEspecialidades
+FROM Instructor i
+JOIN Persona p ON i.CURP = p.CURP
+LEFT JOIN Especialidad e ON i.CURP = e.CurpInstructor
+GROUP BY p.Nombres, p.ApellidoPaterno;
+
+--  ¿Qué niños han cambiado de tutor alguna vez?
+SELECT DISTINCT CURP_Nino
+FROM AuditoriaCambioTutorNino;
+
+--  ¿Cuántas reuniones se han realizado en las unidades de cada club?
+SELECT c.Nombre, COUNT(r.ClaveReunion) AS TotalReuniones
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+JOIN Reunion r ON u.ClaveUnidad = r.ClaveUnidadReunion
+GROUP BY c.Nombre;
+
+--  ¿Qué niños han tenido más de un tutor?
+SELECT CURP_Nino, COUNT(DISTINCT TutorNuevo) AS TutoresDistintos
+FROM AuditoriaCambioTutorNino
+GROUP BY CURP_Nino
+HAVING COUNT(DISTINCT TutorNuevo) > 1;
+
+--  ¿Cuántos niños dados de baja tenía cada tutor?
+SELECT t.CURP, p.Nombres, COUNT(h.CurpPersona) AS NinosDadosDeBaja
+FROM Tutor t
+JOIN Persona p ON t.CURP = p.CURP
+JOIN Niño n ON t.CURP = n.CurpTutor
+JOIN Historial h ON n.CURP = h.CurpPersona
+GROUP BY t.CURP, p.Nombres;
+
+-- ¿Qué niños han participado en más de 5 reuniones?
+SELECT n.CURP, p.Nombres, COUNT(r.ClaveReunion) AS TotalReuniones
+FROM Niño n
+JOIN Persona p ON n.CURP = p.CURP
+JOIN Unidad u ON n.ClaveUnidadNino = u.ClaveUnidad
+JOIN Reunion r ON u.ClaveUnidad = r.ClaveUnidadReunion
+GROUP BY n.CURP, p.Nombres
+HAVING COUNT(r.ClaveReunion) > 5;
+
+--  ¿Cuántas especialidades ha cursado cada niño?
+SELECT p.Nombres, p.ApellidoPaterno, 
+  (SELECT COUNT(*) FROM Especialidad e WHERE e.CurpInstructor = n.CURP) AS EspecialidadesCursadas
+FROM Niño n
+JOIN Persona p ON n.CURP = p.CURP;
+
+--  ¿Cuál es el teléfono de cada tutor?
+SELECT p.Nombres, p.ApellidoPaterno, COALESCE(t.Telefono, 'No registrado') AS Telefono
+FROM Tutor t
+JOIN Persona p ON t.CURP = p.CURP;
+
+--  ¿Qué niños están en unidades con "Alfa" en el nombre?
+SELECT p.Nombres, u.NombreUnidad
+FROM Niño n
+JOIN Persona p ON n.CURP = p.CURP
+JOIN Unidad u ON n.ClaveUnidadNino = u.ClaveUnidad
+WHERE u.NombreUnidad LIKE '%Alfa%';
+
+-- ¿Cuántos niños tiene cada club en total?
+SELECT c.Nombre, COUNT(n.CURP) AS TotalNinos
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+JOIN Niño n ON u.ClaveUnidad = n.ClaveUnidadNino
+GROUP BY c.Nombre;
+
+--  ¿Qué niños han cambiado de clase alguna vez?
+SELECT DISTINCT CURP
+FROM AuditoriaPromocionClase;
+
+-- ¿Quién es el consejero de cada niño?
+SELECT p.Nombres AS NombreNino, pc.Nombres AS NombreConsejero
+FROM Niño n
+JOIN Persona p ON n.CURP = p.CURP
+JOIN Unidad u ON n.ClaveUnidadNino = u.ClaveUnidad
+JOIN Persona pc ON u.CurpConsejero = pc.CURP;
+
+--  ¿Cuántas especialidades se imparten en las unidades de cada club?
+SELECT c.Nombre, COUNT(e.ClaveEspecialidad) AS TotalEspecialidades
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+JOIN Especialidad e ON u.ClaveUnidad = e.CurpInstructor
+GROUP BY c.Nombre;
+
+--  ¿Cuándo fue la última reunión de cada niño?
+SELECT p.Nombres, 
+  (SELECT MAX(r.Fecha) 
+   FROM Reunion r 
+   JOIN Unidad u ON r.ClaveUnidadReunion = u.ClaveUnidad
+   WHERE u.ClaveUnidad = n.ClaveUnidadNino) AS UltimaReunion
+FROM Niño n
+JOIN Persona p ON n.CURP = p.CURP;
+
+--  ¿Cuántos niños con enfermedades graves tiene cada tutor?
+SELECT t.CURP, p.Nombres, COUNT(n.CURP) AS NinosGraves
+FROM Tutor t
+JOIN Persona p ON t.CURP = p.CURP
+JOIN Niño n ON t.CURP = n.CurpTutor
+WHERE n.Enfermedad IN ('Epilepsia', 'Diabetes', 'Problemas cardíacos')
+GROUP BY t.CURP, p.Nombres;
+
+-- ¿Cuál es la especialidad más reciente de cada niño?
+SELECT p.Nombres, 
+  (SELECT TOP 1 e.Nombre 
+   FROM Especialidad e 
+   WHERE e.CurpInstructor = n.CURP 
+   ORDER BY e.FechaAceptacion DESC) AS EspecialidadReciente
+FROM Niño n
+JOIN Persona p ON n.CURP = p.CURP;
+
+-- ¿Cuántas reuniones con asistencia perfecta ha tenido cada club?
+SELECT c.Nombre, COUNT(r.ClaveReunion) AS ReunionesPerfectas
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+JOIN Reunion r ON u.ClaveUnidad = r.ClaveUnidadReunion
+WHERE r.Asistencia = 1
+GROUP BY c.Nombre;
+
+--  ¿Cuántas veces ha cambiado de unidad cada niño?
+SELECT CURP, COUNT(*) AS CambiosUnidad
+FROM AuditoriaCambioUnidadNino
+GROUP BY CURP;
+
+-- ¿Cuándo se le asignó el primer niño a cada tutor?
+SELECT t.CURP, p.Nombres, 
+  (SELECT MIN(pn.FechaNacimiento) 
+   FROM Niño n 
+   JOIN Persona pn ON n.CURP = pn.CURP 
+   WHERE n.CurpTutor = t.CURP) AS FechaPrimerNino
+FROM Tutor t
+JOIN Persona p ON t.CURP = p.CURP;
+
+-- ¿A qué unidad pertenece cada niño?
+SELECT p.Nombres, COALESCE(u.NombreUnidad, 'Sin unidad') AS Unidad
+FROM Niño n
+JOIN Persona p ON n.CURP = p.CURP
+LEFT JOIN Unidad u ON n.ClaveUnidadNino = u.ClaveUnidad;
+
+--  ¿Cuántos tutores tienen niños en las unidades de cada club?
+SELECT c.Nombre, COUNT(DISTINCT n.CurpTutor) AS TotalTutores
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+JOIN Niño n ON u.ClaveUnidad = n.ClaveUnidadNino
+GROUP BY c.Nombre;
+
+--  ¿A cuántas reuniones asistió cada niño en el último mes?
+SELECT p.Nombres, COUNT(r.ClaveReunion) AS ReunionesUltimoMes
+FROM Niño n
+JOIN Persona p ON n.CURP = p.CURP
+JOIN Unidad u ON n.ClaveUnidadNino = u.ClaveUnidad
+JOIN Reunion r ON u.ClaveUnidad = r.ClaveUnidadReunion
+WHERE r.Fecha >= DATEADD(MONTH, -1, GETDATE())
+GROUP BY p.Nombres;
+
+--  ¿Qué niños dados de baja tenía cada tutor?
+SELECT t.CURP, p.Nombres AS Tutor, pn.Nombres AS Nino
+FROM Tutor t
+JOIN Persona p ON t.CURP = p.CURP
+JOIN Niño n ON t.CURP = n.CurpTutor
+JOIN Historial h ON n.CURP = h.CurpPersona
+JOIN Persona pn ON n.CURP = pn.CURP;
+
+--  ¿Cuántos niños con enfermedades graves hay en las unidades de cada club?
+SELECT c.Nombre, COUNT(n.CURP) AS NinosGraves
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+JOIN Niño n ON u.ClaveUnidad = n.ClaveUnidadNino
+WHERE n.Enfermedad IN ('Epilepsia', 'Diabetes', 'Problemas cardíacos')
+GROUP BY c.Nombre;
+
+--  ¿Cuántos niños tiene actualmente y cuántos han sido dados de baja cada tutor?
+SELECT t.CURP, p.Nombres, 
+  (SELECT COUNT(*) FROM Niño n WHERE n.CurpTutor = t.CURP) AS NinosActuales,
+  (SELECT COUNT(*) FROM Historial h JOIN Niño n ON h.CurpPersona = n.CURP WHERE n.CurpTutor = t.CURP) AS NinosBaja
+FROM Tutor t
+JOIN Persona p ON t.CURP = p.CURP;
+
+-- ¿Cuántos niños han cambiado de unidad en las unidades de cada club?
+SELECT c.Nombre, COUNT(DISTINCT a.CURP) AS NinosConCambios
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+JOIN AuditoriaCambioUnidadNino a ON u.ClaveUnidad = a.UnidadNueva
+GROUP BY c.Nombre;
+
+--  ¿Cuántas especialidades avanzadas ha cursado cada niño?
+SELECT p.Nombres, COUNT(e.ClaveEspecialidad) AS EspecialidadesAvanzadas
+FROM Niño n
+JOIN Persona p ON n.CURP = p.CURP
+JOIN Especialidad e ON n.CURP = e.CurpInstructor
+WHERE e.Nivel = 3
+GROUP BY p.Nombres;
+
+--  ¿Cuándo fue la última vez que se actualizó la información de cada tutor?
+SELECT t.CURP, p.Nombres, MAX(a.Fecha) AS UltimaActualizacion
+FROM Tutor t
+JOIN Persona p ON t.CURP = p.CURP
+JOIN AuditoriaTutor a ON t.CURP = a.CURP
+GROUP BY t.CURP, p.Nombres;
+
+-- ¿Cuántos niños han cambiado de tutor en las unidades de cada club?
+SELECT c.Nombre, COUNT(DISTINCT a.CURP_Nino) AS NinosConCambioTutor
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+JOIN Niño n ON u.ClaveUnidad = n.ClaveUnidadNino
+JOIN AuditoriaCambioTutorNino a ON n.CURP = a.CURP_Nino
+GROUP BY c.Nombre;
+
+--  ¿A cuántas reuniones con uniforme completo asistió cada niño?
+SELECT p.Nombres, COUNT(r.ClaveReunion) AS ReunionesUniforme
+FROM Niño n
+JOIN Persona p ON n.CURP = p.CURP
+JOIN Unidad u ON n.ClaveUnidadNino = u.ClaveUnidad
+JOIN Reunion r ON u.ClaveUnidad = r.ClaveUnidadReunion
+WHERE r.Uniforme = 1
+GROUP BY p.Nombres;
+
+--  ¿Cuántos niños con cada enfermedad tiene cada tutor?
+SELECT t.CURP, n.Enfermedad, COUNT(*) AS Total
+FROM Tutor t
+JOIN Niño n ON t.CURP = n.CurpTutor
+GROUP BY t.CURP, n.Enfermedad
+ORDER BY t.CURP, n.Enfermedad;
+
+--  ¿Cuántos niños han sido dados de baja en las unidades de cada club?
+SELECT c.Nombre, COUNT(h.CurpPersona) AS NinosBaja
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+JOIN Niño n ON u.ClaveUnidad = n.ClaveUnidadNino
+JOIN Historial h ON n.CURP = h.CurpPersona
+GROUP BY c.Nombre;
+
+-- ¿Cuántos niños tiene cada tutor por rango de edad?
+SELECT t.CURP,
+  SUM(CASE WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 1 ELSE 0 END) AS Menor10,
+  SUM(CASE WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN 1 ELSE 0 END) AS De10a14,
+  SUM(CASE WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) >= 15 THEN 1 ELSE 0 END) AS Mayor14
+FROM Tutor t
+JOIN Niño n ON t.CURP = n.CurpTutor
+JOIN Persona p ON n.CURP = p.CURP
+GROUP BY t.CURP;
+
+--  ¿Cuántos niños han cambiado de clase en las unidades de cada club?
+SELECT c.Nombre, COUNT(DISTINCT a.CURP) AS NinosConCambioClase
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+JOIN AuditoriaPromocionClase a ON u.ClaveUnidad = a.ClaseNueva
+GROUP BY c.Nombre;
+
+--  ¿Cuántas especialidades por área ha cursado cada niño?
+SELECT n.CURP, e.Area, COUNT(*) AS Total
+FROM Niño n
+JOIN Especialidad e ON n.CURP = e.CurpInstructor
+GROUP BY n.CURP, e.Area;
+
+--  ¿Cuántos niños de cada sexo tiene cada tutor?
+SELECT t.CURP,
+  SUM(CASE WHEN p.Sexo = 'Masculino' THEN 1 ELSE 0 END) AS Masculinos,
+  SUM(CASE WHEN p.Sexo = 'Femenino' THEN 1 ELSE 0 END) AS Femeninos
+FROM Tutor t
+JOIN Niño n ON t.CURP = n.CurpTutor
+JOIN Persona p ON n.CURP = p.CURP
+GROUP BY t.CURP;
+
+-- ¿Cuántos niños han cambiado de unidad y de tutor en las unidades de cada club?
+SELECT c.Nombre, 
+  COUNT(DISTINCT acu.CURP) AS NinosCambioUnidad,
+  COUNT(DISTINCT act.CURP_Nino) AS NinosCambioTutor
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+LEFT JOIN AuditoriaCambioUnidadNino acu ON u.ClaveUnidad = acu.UnidadNueva
+LEFT JOIN AuditoriaCambioTutorNino act ON acu.CURP = act.CURP_Nino
+GROUP BY c.Nombre;
+
+-- ¿A cuántas reuniones asistió cada niño por mes?
+SELECT p.Nombres, MONTH(r.Fecha) AS Mes, COUNT(*) AS TotalReuniones
+FROM Niño n
+JOIN Persona p ON n.CURP = p.CURP
+JOIN Unidad u ON n.ClaveUnidadNino = u.ClaveUnidad
+JOIN Reunion r ON u.ClaveUnidad = r.ClaveUnidadReunion
+GROUP BY p.Nombres, MONTH(r.Fecha)
+ORDER BY p.Nombres, Mes;
+
+-- ¿Cuántos niños de cada clase tiene cada tutor?
+SELECT t.CURP, c.Color AS Clase, COUNT(*) AS Total
+FROM Tutor t
+JOIN Niño n ON t.CURP = n.CurpTutor
+JOIN Clase c ON n.ClaveClaseNino = c.NumeroClase
+GROUP BY t.CURP, c.Color;
+
+--  ¿Cuántos niños han cambiado de clase y de unidad en las unidades de cada club?
+SELECT c.Nombre, 
+  COUNT(DISTINCT apc.CURP) AS NinosCambioClase,
+  COUNT(DISTINCT acu.CURP) AS NinosCambioUnidad
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+LEFT JOIN AuditoriaPromocionClase apc ON u.ClaveUnidad = apc.ClaseNueva
+LEFT JOIN AuditoriaCambioUnidadNino acu ON u.ClaveUnidad = acu.UnidadNueva
+GROUP BY c.Nombre;
+
+--  ¿Cuántos niños de cada unidad tiene cada tutor?
+SELECT t.CURP, u.NombreUnidad, COUNT(*) AS Total
+FROM Tutor t
+JOIN Niño n ON t.CURP = n.CurpTutor
+JOIN Unidad u ON n.ClaveUnidadNino = u.ClaveUnidad
+GROUP BY t.CURP, u.NombreUnidad;
+
+-- 66. ¿Cuántas veces ha cambiado de tutor, unidad y clase cada niño?
+SELECT n.CURP, 
+  (SELECT COUNT(*) FROM AuditoriaCambioTutorNino a WHERE a.CURP_Nino = n.CURP) AS CambiosTutor,
+  (SELECT COUNT(*) FROM AuditoriaCambioUnidadNino a WHERE a.CURP = n.CURP) AS CambiosUnidad,
+  (SELECT COUNT(*) FROM AuditoriaPromocionClase a WHERE a.CURP = n.CURP) AS CambiosClase
+FROM Niño n;
+
+-- ¿Cuántos niños han cambiado de tutor, unidad y clase en las unidades de cada club?
+SELECT c.Nombre, 
+  COUNT(DISTINCT act.CURP_Nino) AS NinosCambioTutor,
+  COUNT(DISTINCT acu.CURP) AS NinosCambioUnidad,
+  COUNT(DISTINCT apc.CURP) AS NinosCambioClase
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+LEFT JOIN AuditoriaCambioTutorNino act ON u.ClaveUnidad = act.CURP_Nino
+LEFT JOIN AuditoriaCambioUnidadNino acu ON u.ClaveUnidad = acu.UnidadNueva
+LEFT JOIN AuditoriaPromocionClase apc ON u.ClaveUnidad = apc.ClaseNueva
+GROUP BY c.Nombre;
+
+-- ¿Cuántos niños tiene cada tutor por rango de edad y sexo?
+SELECT t.CURP,
+  SUM(CASE WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 AND p.Sexo = 'Masculino' THEN 1 ELSE 0 END) AS Menor10_M,
+  SUM(CASE WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 AND p.Sexo = 'Femenino' THEN 1 ELSE 0 END) AS Menor10_F,
+  SUM(CASE WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 AND p.Sexo = 'Masculino' THEN 1 ELSE 0 END) AS De10a14_M,
+  SUM(CASE WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 AND p.Sexo = 'Femenino' THEN 1 ELSE 0 END) AS De10a14_F,
+  SUM(CASE WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) >= 15 AND p.Sexo = 'Masculino' THEN 1 ELSE 0 END) AS Mayor14_M,
+  SUM(CASE WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) >= 15 AND p.Sexo = 'Femenino' THEN 1 ELSE 0 END) AS Mayor14_F
+FROM Tutor t
+JOIN Niño n ON t.CURP = n.CurpTutor
+JOIN Persona p ON n.CURP = p.CURP
+GROUP BY t.CURP;
+
+-- ¿Cuántos niños con cada tipo de enfermedad han cambiado de tutor, unidad y clase en las unidades de cada club?
+SELECT c.Nombre, n.Enfermedad, COUNT(*) AS Total
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+JOIN Niño n ON u.ClaveUnidad = n.ClaveUnidadNino
+JOIN AuditoriaCambioTutorNino act ON n.CURP = act.CURP_Nino
+JOIN AuditoriaCambioUnidadNino acu ON n.CURP = acu.CURP
+JOIN AuditoriaPromocionClase apc ON n.CURP = apc.CURP
+GROUP BY c.Nombre, n.Enfermedad;
+
+-- ¿Cuántos niños tiene cada tutor por rango de edad, sexo y tipo de enfermedad?
+SELECT t.CURP,
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END AS RangoEdad,
+  p.Sexo,
+  n.Enfermedad,
+  COUNT(*) AS Total
+FROM Tutor t
+JOIN Niño n ON t.CURP = n.CurpTutor
+JOIN Persona p ON n.CURP = p.CURP
+GROUP BY t.CURP, 
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END,
+  p.Sexo, n.Enfermedad;
+
+-- ¿Cuántos niños por rango de edad han cambiado de tutor, unidad y clase en las unidades de cada club?
+SELECT c.Nombre, 
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END AS RangoEdad,
+  COUNT(*) AS Total
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+JOIN Niño n ON u.ClaveUnidad = n.ClaveUnidadNino
+JOIN Persona p ON n.CURP = p.CURP
+JOIN AuditoriaCambioTutorNino act ON n.CURP = act.CURP_Nino
+JOIN AuditoriaCambioUnidadNino acu ON n.CURP = acu.CURP
+JOIN AuditoriaPromocionClase apc ON n.CURP = apc.CURP
+GROUP BY c.Nombre, 
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END;
+
+-- ¿Cuántos niños tiene cada tutor por rango de edad, sexo, tipo de enfermedad y clase?
+SELECT t.CURP,
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END AS RangoEdad,
+  p.Sexo,
+  n.Enfermedad,
+  c.Color AS Clase,
+  COUNT(*) AS Total
+FROM Tutor t
+JOIN Niño n ON t.CURP = n.CurpTutor
+JOIN Persona p ON n.CURP = p.CURP
+JOIN Clase c ON n.ClaveClaseNino = c.NumeroClase
+GROUP BY t.CURP, 
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END,
+  p.Sexo, n.Enfermedad, c.Color;
+
+-- ¿Cuántos niños por rango de edad, sexo y tipo de enfermedad han cambiado de tutor, unidad y clase en las unidades de cada club?
+SELECT c.Nombre, 
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END AS RangoEdad,
+  p.Sexo,
+  n.Enfermedad,
+  COUNT(*) AS Total
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+JOIN Niño n ON u.ClaveUnidad = n.ClaveUnidadNino
+JOIN Persona p ON n.CURP = p.CURP
+JOIN AuditoriaCambioTutorNino act ON n.CURP = act.CURP_Nino
+JOIN AuditoriaCambioUnidadNino acu ON n.CURP = acu.CURP
+JOIN AuditoriaPromocionClase apc ON n.CURP = apc.CURP
+GROUP BY c.Nombre, 
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END,
+  p.Sexo, n.Enfermedad;
+
+--¿Cuántos niños tiene cada tutor por rango de edad, sexo, tipo de enfermedad, clase y unidad?
+SELECT t.CURP,
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END AS RangoEdad,
+  p.Sexo,
+  n.Enfermedad,
+  c.Color AS Clase,
+  u.NombreUnidad,
+  COUNT(*) AS Total
+FROM Tutor t
+JOIN Niño n ON t.CURP = n.CurpTutor
+JOIN Persona p ON n.CURP = p.CURP
+JOIN Clase c ON n.ClaveClaseNino = c.NumeroClase
+JOIN Unidad u ON n.ClaveUnidadNino = u.ClaveUnidad
+GROUP BY t.CURP, 
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END,
+  p.Sexo, n.Enfermedad, c.Color, u.NombreUnidad;
+
+-- ¿Cuántos niños por rango de edad, sexo, tipo de enfermedad, clase y unidad han cambiado de tutor, unidad y clase en las unidades de cada club?
+SELECT c.Nombre, 
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END AS RangoEdad,
+  p.Sexo,
+  n.Enfermedad,
+  cl.Color AS Clase,
+  u.NombreUnidad,
+  COUNT(*) AS Total
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+JOIN Niño n ON u.ClaveUnidad = n.ClaveUnidadNino
+JOIN Persona p ON n.CURP = p.CURP
+JOIN Clase cl ON n.ClaveClaseNino = cl.NumeroClase
+JOIN AuditoriaCambioTutorNino act ON n.CURP = act.CURP_Nino
+JOIN AuditoriaCambioUnidadNino acu ON n.CURP = acu.CURP
+JOIN AuditoriaPromocionClase apc ON n.CURP = apc.CURP
+GROUP BY c.Nombre, 
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END,
+  p.Sexo, n.Enfermedad, cl.Color, u.NombreUnidad;
+
+-- ¿Cuántos niños tiene cada tutor por rango de edad, sexo, tipo de enfermedad, clase, unidad y club?
+SELECT t.CURP,
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END AS RangoEdad,
+  p.Sexo,
+  n.Enfermedad,
+  c.Color AS Clase,
+  u.NombreUnidad,
+  cl.Nombre AS Club,
+  COUNT(*) AS Total
+FROM Tutor t
+JOIN Niño n ON t.CURP = n.CurpTutor
+JOIN Persona p ON n.CURP = p.CURP
+JOIN Clase c ON n.ClaveClaseNino = c.NumeroClase
+JOIN Unidad u ON n.ClaveUnidadNino = u.ClaveUnidad
+JOIN Club cl ON u.ClaveUnidad = cl.ClaveClub
+GROUP BY t.CURP, 
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END,
+  p.Sexo, n.Enfermedad, c.Color, u.NombreUnidad, cl.Nombre;
+
+-- ¿Cuántos niños por rango de edad, sexo, tipo de enfermedad, clase, unidad y club han cambiado de tutor, unidad y clase en las unidades de cada club?
+SELECT c.Nombre, 
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END AS RangoEdad,
+  p.Sexo,
+  n.Enfermedad,
+  cl.Color AS Clase,
+  u.NombreUnidad,
+  clb.Nombre AS Club,
+  COUNT(*) AS Total
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+JOIN Niño n ON u.ClaveUnidad = n.ClaveUnidadNino
+JOIN Persona p ON n.CURP = p.CURP
+JOIN Clase cl ON n.ClaveClaseNino = cl.NumeroClase
+JOIN Club clb ON u.ClaveUnidad = clb.ClaveClub
+JOIN AuditoriaCambioTutorNino act ON n.CURP = act.CURP_Nino
+JOIN AuditoriaCambioUnidadNino acu ON n.CURP = acu.CURP
+JOIN AuditoriaPromocionClase apc ON n.CURP = apc.CURP
+GROUP BY c.Nombre, 
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END,
+  p.Sexo, n.Enfermedad, cl.Color, u.NombreUnidad, clb.Nombre;
+
+-- ¿Cuántos niños tiene cada tutor por rango de edad, sexo, tipo de enfermedad, clase, unidad, club y área de especialidad?
+SELECT t.CURP,
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END AS RangoEdad,
+  p.Sexo,
+  n.Enfermedad,
+  c.Color AS Clase,
+  u.NombreUnidad,
+  cl.Nombre AS Club,
+  e.Area,
+  COUNT(*) AS Total
+FROM Tutor t
+JOIN Niño n ON t.CURP = n.CurpTutor
+JOIN Persona p ON n.CURP = p.CURP
+JOIN Clase c ON n.ClaveClaseNino = c.NumeroClase
+JOIN Unidad u ON n.ClaveUnidadNino = u.ClaveUnidad
+JOIN Club cl ON u.ClaveUnidad = cl.ClaveClub
+JOIN Especialidad e ON n.CURP = e.CurpInstructor
+GROUP BY t.CURP, 
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END,
+  p.Sexo, n.Enfermedad, c.Color, u.NombreUnidad, cl.Nombre, e.Area;
+
+-- ¿Cuántos niños por rango de edad, sexo, tipo de enfermedad, clase, unidad, club y área de especialidad han cambiado de tutor, unidad y clase en las unidades de cada club?
+SELECT c.Nombre, 
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END AS RangoEdad,
+  p.Sexo,
+  n.Enfermedad,
+  cl.Color AS Clase,
+  u.NombreUnidad,
+  clb.Nombre AS Club,
+  e.Area,
+  COUNT(*) AS Total
+FROM Club c
+JOIN Unidad u ON c.ClaveClub = u.ClaveUnidad
+JOIN Niño n ON u.ClaveUnidad = n.ClaveUnidadNino
+JOIN Persona p ON n.CURP = p.CURP
+JOIN Clase cl ON n.ClaveClaseNino = cl.NumeroClase
+JOIN Club clb ON u.ClaveUnidad = clb.ClaveClub
+JOIN Especialidad e ON n.CURP = e.CurpInstructor
+JOIN AuditoriaCambioTutorNino act ON n.CURP = act.CURP_Nino
+JOIN AuditoriaCambioUnidadNino acu ON n.CURP = acu.CURP
+JOIN AuditoriaPromocionClase apc ON n.CURP = apc.CURP
+GROUP BY c.Nombre, 
+  CASE 
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 10 THEN 'Menor10'
+    WHEN DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) BETWEEN 10 AND 14 THEN '10a14'
+    ELSE '15omas'
+  END,
+  p.Sexo, n.Enfermedad, cl.Color, u.NombreUnidad, clb.Nombre, e.Area;
+
+/* SP Y TRIGGERS */
+
+-- PROCEDIMIENTOS ALMACENADOS 
+-- Registra a un niño y un tutor 
+CREATE PROCEDURE SP_RegistrarNinoYtutor
+    @CurpNino CHAR(18), @NombresNino NVARCHAR(50), @ApellidoPaternoNino NVARCHAR(50), @ApellidoMaternoNino NVARCHAR(50),
+    @SexoNino VARCHAR(10), @FechaNacimientoNino DATE, @DireccionNino VARCHAR(80), @Enfermedad VARCHAR(50),
+    @ContactoEmergencia VARCHAR(25), @ClaveClaseNino INT, @CurpTutor CHAR(18), @NombresTutor NVARCHAR(50),
+    @ApellidoPaternoTutor NVARCHAR(50), @ApellidoMaternoTutor NVARCHAR(50), @SexoTutor VARCHAR(10),
+    @FechaNacimientoTutor DATE, @DireccionTutor VARCHAR(80), @TelefonoTutor VARCHAR(10), @ClaveUnidadNino INT
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        IF NOT EXISTS (SELECT 1 FROM Persona WHERE CURP = @CurpTutor)
+        BEGIN
+            INSERT INTO Persona (CURP, ApellidoPaterno, ApellidoMaterno, Nombres, Sexo, FechaNacimiento, Direccion, Tipo)
+            VALUES (@CurpTutor, @ApellidoPaternoTutor, @ApellidoMaternoTutor, @NombresTutor, @SexoTutor, @FechaNacimientoTutor, @DireccionTutor, 'Tutor');
+            INSERT INTO Tutor (CURP, Telefono) VALUES (@CurpTutor, @TelefonoTutor);
+        END
+        INSERT INTO Persona (CURP, ApellidoPaterno, ApellidoMaterno, Nombres, Sexo, FechaNacimiento, Direccion, Tipo)
+        VALUES (@CurpNino, @ApellidoPaternoNino, @ApellidoMaternoNino, @NombresNino, @SexoNino, @FechaNacimientoNino, @DireccionNino, 'Niño');
+        INSERT INTO Niño (CURP, Enfermedad, ContactoEmergencia, ClaveClaseNino, CurpTutor, ClaveUnidadNino)
+        VALUES (@CurpNino, @Enfermedad, @ContactoEmergencia, @ClaveClaseNino, @CurpTutor, @ClaveUnidadNino);
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+--  Cambia de unidad a todos los niños de una clase 
+CREATE PROCEDURE SP_CambiarUnidadNinosPorClase
+    @NumeroClase INT, @NuevaUnidad INT
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        UPDATE Niño SET ClaveUnidadNino = @NuevaUnidad WHERE ClaveClaseNino = @NumeroClase
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+--  Lista de tutores y la cantidad de niños asignados
+CREATE PROCEDURE SP_ListarTutoresConCantidadNinos
+AS
+BEGIN
+    DECLARE @CurpTutor CHAR(18), @Cantidad INT
+    DECLARE cur CURSOR FOR SELECT CURP FROM Tutor
+    OPEN cur
+    FETCH NEXT FROM cur INTO @CurpTutor
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SELECT @Cantidad = COUNT(*) FROM Niño WHERE CurpTutor = @CurpTutor
+        PRINT 'Tutor: ' + @CurpTutor + ' - Niños asignados: ' + CAST(@Cantidad AS VARCHAR)
+        FETCH NEXT FROM cur INTO @CurpTutor
+    END
+    CLOSE cur
+    DEALLOCATE cur
+END
+GO
+
+--  Registra un club y primer directivo 
+CREATE PROCEDURE SP_RegistrarClubYDirectivo
+    @ClaveClub VARCHAR(15), @Nombre VARCHAR(50), @Direccion VARCHAR(80),
+    @CurpDirectivo CHAR(18), @Rol VARCHAR(50)
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        INSERT INTO Club (ClaveClub, Nombre, Direccion) VALUES (@ClaveClub, @Nombre, @Direccion);
+        INSERT INTO Directivo (CURP, ROL, ClaveClubDirectivo) VALUES (@CurpDirectivo, @Rol, @ClaveClub);
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+--  Asigna consejero a unidad
+CREATE PROCEDURE SP_AsignarConsejeroUnidad
+    @ClaveUnidad INT, @CurpConsejero CHAR(18)
+AS
+BEGIN
+    UPDATE Unidad SET CurpConsejero = @CurpConsejero WHERE ClaveUnidad = @ClaveUnidad
+END
+GO
+
+--  Cambia el tutor de un niño 
+CREATE PROCEDURE SP_CambiarTutorNino
+    @CurpNino CHAR(18), @NuevoTutor CHAR(18)
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        UPDATE Niño SET CurpTutor = @NuevoTutor WHERE CURP = @CurpNino
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+--  Lista de niños por unidad
+CREATE PROCEDURE SP_ListarNinosPorUnidad
+    @ClaveUnidad INT
+AS
+BEGIN
+    SELECT p.Nombres, p.ApellidoPaterno, p.ApellidoMaterno
+    FROM Niño n
+    JOIN Persona p ON n.CURP = p.CURP
+    WHERE n.ClaveUnidadNino = @ClaveUnidad
+END
+GO
+
+--  Lista de especialidades por área
+CREATE PROCEDURE SP_ListarEspecialidadesPorArea
+    @Area VARCHAR(50)
+AS
+BEGIN
+    SELECT * FROM Especialidad WHERE Area = @Area
+END
+GO
+
+--  Registra una reunión para una unidad
+CREATE PROCEDURE SP_RegistrarReunion
+    @ClaveReunion VARCHAR(15), @Fecha DATE, @Puntualidad BIT, @Asistencia BIT, @Uniforme BIT, @Limpieza BIT, @Tareas BIT, @ClaveUnidad INT
+AS
+BEGIN
+    INSERT INTO Reunion (ClaveReunion, Fecha, Puntualidad, Asistencia, Uniforme, Limpieza, Tareas, ClaveUnidadReunion)
+    VALUES (@ClaveReunion, @Fecha, @Puntualidad, @Asistencia, @Uniforme, @Limpieza, @Tareas, @ClaveUnidad)
+END
+GO
+
+--  Cambiar club de un directivo 
+CREATE PROCEDURE SP_CambiarClubDirectivo
+    @CurpDirectivo CHAR(18), @NuevoClub VARCHAR(15)
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        UPDATE Directivo SET ClaveClubDirectivo = @NuevoClub WHERE CURP = @CurpDirectivo
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+--  Lista de tutores con más de N niños 
+CREATE PROCEDURE SP_TutoresConMasDeNinos
+    @MinNinos INT
+AS
+BEGIN
+    DECLARE @CurpTutor CHAR(18), @Cantidad INT
+    DECLARE cur CURSOR FOR SELECT CURP FROM Tutor
+    OPEN cur
+    FETCH NEXT FROM cur INTO @CurpTutor
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SELECT @Cantidad = COUNT(*) FROM Niño WHERE CurpTutor = @CurpTutor
+        IF @Cantidad > @MinNinos
+            PRINT 'Tutor: ' + @CurpTutor + ' - Niños asignados: ' + CAST(@Cantidad AS VARCHAR)
+        FETCH NEXT FROM cur INTO @CurpTutor
+    END
+    CLOSE cur
+    DEALLOCATE cur
+END
+GO
+
+--  Elimina un niño y lo registra en auditoría 
+CREATE PROCEDURE SP_EliminarNino
+    @CurpNino CHAR(18)
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        DELETE FROM Niño WHERE CURP = @CurpNino
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+--  Lista de niños con enfermedades específicas
+CREATE PROCEDURE SP_ListarNinosPorEnfermedad
+    @Enfermedad VARCHAR(50)
+AS
+BEGIN
+    SELECT p.Nombres, p.ApellidoPaterno, p.ApellidoMaterno
+    FROM Niño n
+    JOIN Persona p ON n.CURP = p.CURP
+    WHERE n.Enfermedad = @Enfermedad
+END
+GO
+
+-- Lista de reuniones por unidad y fecha
+CREATE PROCEDURE SP_ListarReunionesPorUnidadYFecha
+    @ClaveUnidad INT, @FechaInicio DATE, @FechaFin DATE
+AS
+BEGIN
+    SELECT * FROM Reunion
+    WHERE ClaveUnidadReunion = @ClaveUnidad AND Fecha BETWEEN @FechaInicio AND @FechaFin
+END
+GO
+
+CREATE PROCEDURE SP_ReasignarNinosUnidad
+    @UnidadOrigen INT,
+    @UnidadDestino INT
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        DECLARE @CurpNino CHAR(18)
+        DECLARE cur CURSOR FOR
+            SELECT CURP FROM Niño WHERE ClaveUnidadNino = @UnidadOrigen
+        OPEN cur
+        FETCH NEXT FROM cur INTO @CurpNino
+        WHILE @@FETCH_STATUS = 0
+        BEGIN
+            INSERT INTO AuditoriaCambioUnidadNino (CURP, UnidadAnterior, UnidadNueva, FechaCambio, Usuario)
+            VALUES (@CurpNino, @UnidadOrigen, @UnidadDestino, GETDATE(), SYSTEM_USER)
+            UPDATE Niño SET ClaveUnidadNino = @UnidadDestino WHERE CURP = @CurpNino
+            FETCH NEXT FROM cur INTO @CurpNino
+        END
+        CLOSE cur
+        DEALLOCATE cur
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+-- Asigna un tutor a varios niños solo si el tutor no supera 5 niños y ninguno tiene enfermedad grave 
+CREATE PROCEDURE SP_AsignarTutorAMultiplesNinos
+    @CurpTutor CHAR(18),
+    @ListaNinos NVARCHAR(MAX) -- Coma separada: 'CURP1,CURP2,...'
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        DECLARE @TotalActual INT
+        SELECT @TotalActual = COUNT(*) FROM Niño WHERE CurpTutor = @CurpTutor
+
+        DECLARE @CurpNino CHAR(18)
+        DECLARE @Pos INT = 1
+        DECLARE @NextPos INT
+        DECLARE @NinoCount INT = 0
+
+        WHILE @Pos > 0
+        BEGIN
+            SET @NextPos = CHARINDEX(',', @ListaNinos, @Pos)
+            IF @NextPos > 0
+                SET @CurpNino = SUBSTRING(@ListaNinos, @Pos, @NextPos - @Pos)
+            ELSE
+                SET @CurpNino = SUBSTRING(@ListaNinos, @Pos, LEN(@ListaNinos) - @Pos + 1)
+
+            IF EXISTS (SELECT 1 FROM Niño WHERE CURP = @CurpNino AND Enfermedad IN ('Epilepsia', 'Problemas cardíacos', 'Diabetes'))
+            BEGIN
+                RAISERROR('No se puede asignar tutor a un niño con enfermedad grave.', 16, 1)
+                ROLLBACK TRANSACTION
+                RETURN
+            END
+
+            SET @NinoCount = @NinoCount + 1
+            IF @NextPos > 0
+                SET @Pos = @NextPos + 1
+            ELSE
+                SET @Pos = 0
+        END
+
+        IF @TotalActual + @NinoCount > 5
+        BEGIN
+            RAISERROR('El tutor tendría más de 5 niños asignados.', 16, 1)
+            ROLLBACK TRANSACTION
+            RETURN
+        END
+
+        -- Asignar tutor
+        SET @Pos = 1
+        WHILE @Pos > 0
+        BEGIN
+            SET @NextPos = CHARINDEX(',', @ListaNinos, @Pos)
+            IF @NextPos > 0
+                SET @CurpNino = SUBSTRING(@ListaNinos, @Pos, @NextPos - @Pos)
+            ELSE
+                SET @CurpNino = SUBSTRING(@ListaNinos, @Pos, LEN(@ListaNinos) - @Pos + 1)
+
+            UPDATE Niño SET CurpTutor = @CurpTutor WHERE CURP = @CurpNino
+
+            IF @NextPos > 0
+                SET @Pos = @NextPos + 1
+            ELSE
+                SET @Pos = 0
+        END
+
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+-- Cambiar el club de un directivo solo si el club destino tiene menos de 4 directivos y auditar el cambio
+CREATE TABLE IF NOT EXISTS AuditoriaCambioClubDirectivo (
+    CURP CHAR(18),
+    ClubAnterior VARCHAR(15),
+    ClubNuevo VARCHAR(15),
+    FechaCambio DATETIME,
+    Usuario NVARCHAR(100)
+)
+GO
+
+CREATE PROCEDURE SP_CambiarClubDirectivoSeguro
+    @CurpDirectivo CHAR(18),
+    @NuevoClub VARCHAR(15)
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        DECLARE @ClubAnterior VARCHAR(15)
+        SELECT @ClubAnterior = ClaveClubDirectivo FROM Directivo WHERE CURP = @CurpDirectivo
+
+        IF (SELECT COUNT(*) FROM Directivo WHERE ClaveClubDirectivo = @NuevoClub) >= 4
+        BEGIN
+            RAISERROR('El club destino ya tiene 4 directivos.', 16, 1)
+            ROLLBACK TRANSACTION
+            RETURN
+        END
+
+        UPDATE Directivo SET ClaveClubDirectivo = @NuevoClub WHERE CURP = @CurpDirectivo
+
+        INSERT INTO AuditoriaCambioClubDirectivo (CURP, ClubAnterior, ClubNuevo, FechaCambio, Usuario)
+        VALUES (@CurpDirectivo, @ClubAnterior, @NuevoClub, GETDATE(), SYSTEM_USER)
+
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+--  Registra una reunión y actualiza automáticamente la asistencia promedio de la unidad 
+CREATE TABLE IF NOT EXISTS EstadisticaUnidad (
+    ClaveUnidad INT,
+    AsistenciaPromedio DECIMAL(5,2),
+    UltimaActualizacion DATETIME
+)
+GO
+
+CREATE PROCEDURE SP_RegistrarReunionYActualizarEstadistica
+    @ClaveReunion VARCHAR(15), @Fecha DATE, @Puntualidad BIT, @Asistencia BIT, @Uniforme BIT, @Limpieza BIT, @Tareas BIT, @ClaveUnidad INT
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        INSERT INTO Reunion (ClaveReunion, Fecha, Puntualidad, Asistencia, Uniforme, Limpieza, Tareas, ClaveUnidadReunion)
+        VALUES (@ClaveReunion, @Fecha, @Puntualidad, @Asistencia, @Uniforme, @Limpieza, @Tareas, @ClaveUnidad)
+
+        DECLARE @Promedio DECIMAL(5,2)
+        SELECT @Promedio = AVG(CAST(Asistencia AS FLOAT)) FROM Reunion WHERE ClaveUnidadReunion = @ClaveUnidad
+
+        IF EXISTS (SELECT 1 FROM EstadisticaUnidad WHERE ClaveUnidad = @ClaveUnidad)
+            UPDATE EstadisticaUnidad SET AsistenciaPromedio = @Promedio, UltimaActualizacion = GETDATE() WHERE ClaveUnidad = @ClaveUnidad
+        ELSE
+            INSERT INTO EstadisticaUnidad (ClaveUnidad, AsistenciaPromedio, UltimaActualizacion) VALUES (@ClaveUnidad, @Promedio, GETDATE())
+
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+--  Promociona los niños a la siguiente clase según edad y auditar el cambio 
+CREATE TABLE IF NOT EXISTS AuditoriaPromocionClase (
+    CURP CHAR(18),
+    ClaseAnterior INT,
+    ClaseNueva INT,
+    FechaPromocion DATETIME,
+    Usuario NVARCHAR(100)
+)
+GO
+
+CREATE PROCEDURE SP_PromocionarNinosPorEdad
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        DECLARE @CurpNino CHAR(18), @Edad INT, @ClaseActual INT, @NuevaClase INT
+        DECLARE cur CURSOR FOR
+            SELECT n.CURP, c.EdadMinima, n.ClaveClaseNino
+            FROM Niño n
+            JOIN Persona p ON n.CURP = p.CURP
+            JOIN Clase c ON n.ClaveClaseNino = c.NumeroClase
+        OPEN cur
+        FETCH NEXT FROM cur INTO @CurpNino, @Edad, @ClaseActual
+        WHILE @@FETCH_STATUS = 0
+        BEGIN
+            SELECT TOP 1 @NuevaClase = NumeroClase FROM Clase WHERE EdadMinima > @Edad ORDER BY EdadMinima ASC
+            IF @NuevaClase IS NOT NULL AND @NuevaClase <> @ClaseActual
+            BEGIN
+                UPDATE Niño SET ClaveClaseNino = @NuevaClase WHERE CURP = @CurpNino
+                INSERT INTO AuditoriaPromocionClase (CURP, ClaseAnterior, ClaseNueva, FechaPromocion, Usuario)
+                VALUES (@CurpNino, @ClaseActual, @NuevaClase, GETDATE(), SYSTEM_USER)
+            END
+            FETCH NEXT FROM cur INTO @CurpNino, @Edad, @ClaseActual
+        END
+        CLOSE cur
+        DEALLOCATE cur
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+--  Registra la especialidad y asignar automáticamente a todos los instructores del área 
+CREATE PROCEDURE SP_RegistrarEspecialidadYAsignarInstructores
+    @ClaveEspecialidad VARCHAR(15), @Nombre NVARCHAR(50), @Area VARCHAR(50), @FechaAceptacion DATE, @Nivel INT
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        INSERT INTO Especialidad (ClaveEspecialidad, Nombre, Area, FechaAceptacion, Nivel, CurpInstructor)
+        VALUES (@ClaveEspecialidad, @Nombre, @Area, @FechaAceptacion, @Nivel, NULL)
+
+        DECLARE @CurpInstructor CHAR(18)
+        DECLARE cur CURSOR FOR SELECT CURP FROM Instructor
+        OPEN cur
+        FETCH NEXT FROM cur INTO @CurpInstructor
+        WHILE @@FETCH_STATUS = 0
+        BEGIN
+            UPDATE Especialidad SET CurpInstructor = @CurpInstructor WHERE ClaveEspecialidad = @ClaveEspecialidad AND CurpInstructor IS NULL
+            FETCH NEXT FROM cur INTO @CurpInstructor
+        END
+        CLOSE cur
+        DEALLOCATE cur
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+-- Registraa la baja de niño y dejar registro en historial 
+CREATE PROCEDURE SP_BajaNinoConHistorial
+    @CurpNino CHAR(18), @FechaFin DATE
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        INSERT INTO Historial (NumeroHistorial, FechaInicio, FechaFin, CurpPersona)
+        VALUES ((SELECT ISNULL(MAX(NumeroHistorial),0)+1 FROM Historial), GETDATE(), @FechaFin, @CurpNino)
+        DELETE FROM Niño WHERE CURP = @CurpNino
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+-- Cambia el consejero de unidad y auditar el cambio 
+CREATE TABLE IF NOT EXISTS AuditoriaCambioConsejeroUnidad (
+    ClaveUnidad INT,
+    ConsejeroAnterior CHAR(18),
+    ConsejeroNuevo CHAR(18),
+    FechaCambio DATETIME,
+    Usuario NVARCHAR(100)
+)
+GO
+
+CREATE PROCEDURE SP_CambiarConsejeroUnidad
+    @ClaveUnidad INT, @NuevoConsejero CHAR(18)
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        DECLARE @ConsejeroAnterior CHAR(18)
+        SELECT @ConsejeroAnterior = CurpConsejero FROM Unidad WHERE ClaveUnidad = @ClaveUnidad
+        UPDATE Unidad SET CurpConsejero = @NuevoConsejero WHERE ClaveUnidad = @ClaveUnidad
+        INSERT INTO AuditoriaCambioConsejeroUnidad (ClaveUnidad, ConsejeroAnterior, ConsejeroNuevo, FechaCambio, Usuario)
+        VALUES (@ClaveUnidad, @ConsejeroAnterior, @NuevoConsejero, GETDATE(), SYSTEM_USER)
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+--Registra a un directivo y si es presidente, actualizar lema del club 
+CREATE PROCEDURE SP_RegistrarDirectivoYActualizarLema
+    @CurpDirectivo CHAR(18), @Rol VARCHAR(50), @ClaveClub VARCHAR(15), @NuevoLema VARCHAR(100)
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        INSERT INTO Directivo (CURP, ROL, ClaveClubDirectivo) VALUES (@CurpDirectivo, @Rol, @ClaveClub)
+        IF @Rol = 'Presidente'
+            UPDATE Club SET Lema = @NuevoLema WHERE ClaveClub = @ClaveClub
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+-- Cambia el instructor de especialidad y auditar el cambio 
+CREATE TABLE IF NOT EXISTS AuditoriaCambioInstructorEspecialidad (
+    ClaveEspecialidad VARCHAR(15),
+    InstructorAnterior CHAR(18),
+    InstructorNuevo CHAR(18),
+    FechaCambio DATETIME,
+    Usuario NVARCHAR(100)
+)
+GO
+
+CREATE PROCEDURE SP_CambiarInstructorEspecialidad
+    @ClaveEspecialidad VARCHAR(15), @NuevoInstructor CHAR(18)
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        DECLARE @InstructorAnterior CHAR(18)
+        SELECT @InstructorAnterior = CurpInstructor FROM Especialidad WHERE ClaveEspecialidad = @ClaveEspecialidad
+        UPDATE Especialidad SET CurpInstructor = @NuevoInstructor WHERE ClaveEspecialidad = @ClaveEspecialidad
+        INSERT INTO AuditoriaCambioInstructorEspecialidad (ClaveEspecialidad, InstructorAnterior, InstructorNuevo, FechaCambio, Usuario)
+        VALUES (@ClaveEspecialidad, @InstructorAnterior, @NuevoInstructor, GETDATE(), SYSTEM_USER)
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+-- Si se intenta cambiar el tutor de un niño con enfermedad grave, revierte el cambio y audita
+CREATE PROCEDURE SP_CambiarTutorConValidacion
+    @CurpNino CHAR(18), @NuevoTutor CHAR(18)
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        IF EXISTS (SELECT 1 FROM Niño WHERE CURP = @CurpNino AND Enfermedad IN ('Epilepsia', 'Diabetes', 'Problemas cardíacos'))
+        BEGIN
+            INSERT INTO AuditoriaCambioTutorNino (CURP_Nino, TutorAnterior, TutorNuevo, FechaCambio, Usuario)
+            SELECT CURP, CurpTutor, @NuevoTutor, GETDATE(), SYSTEM_USER FROM Niño WHERE CURP = @CurpNino
+            RAISERROR('No se puede cambiar el tutor de un niño con enfermedad grave.', 16, 1)
+            ROLLBACK TRANSACTION
+            RETURN
+        END
+        UPDATE Niño SET CurpTutor = @NuevoTutor WHERE CURP = @CurpNino
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+-- Si un tutor supera 5 niños, lo marca como "Sobrecargado" en una tabla de control
+CREATE TABLE IF NOT EXISTS ControlSobrecargaTutor (
+    CURP_Tutor CHAR(18),
+    Sobrecargado BIT,
+    FechaActualizacion DATETIME
+)
+GO
+
+CREATE PROCEDURE SP_MarcarTutorSobrecargado
+AS
+BEGIN
+    DECLARE @CurpTutor CHAR(18)
+    DECLARE cur CURSOR FOR SELECT CURP FROM Tutor
+    OPEN cur
+    FETCH NEXT FROM cur INTO @CurpTutor
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        DECLARE @Total INT
+        SELECT @Total = COUNT(*) FROM Niño WHERE CurpTutor = @CurpTutor
+        IF @Total > 5
+        BEGIN
+            IF EXISTS (SELECT 1 FROM ControlSobrecargaTutor WHERE CURP_Tutor = @CurpTutor)
+                UPDATE ControlSobrecargaTutor SET Sobrecargado = 1, FechaActualizacion = GETDATE() WHERE CURP_Tutor = @CurpTutor
+            ELSE
+                INSERT INTO ControlSobrecargaTutor (CURP_Tutor, Sobrecargado, FechaActualizacion) VALUES (@CurpTutor, 1, GETDATE())
+        END
+        ELSE
+        BEGIN
+            IF EXISTS (SELECT 1 FROM ControlSobrecargaTutor WHERE CURP_Tutor = @CurpTutor)
+                UPDATE ControlSobrecargaTutor SET Sobrecargado = 0, FechaActualizacion = GETDATE() WHERE CURP_Tutor = @CurpTutor
+        END
+        FETCH NEXT FROM cur INTO @CurpTutor
+    END
+    CLOSE cur
+    DEALLOCATE cur
+END
+GO
+
+-- Si se elimina un niño con enfermedad grave, además de auditar, envía alerta (simulada con PRINT)
+CREATE PROCEDURE SP_EliminarNinoConAlerta
+    @CurpNino CHAR(18)
+AS
+BEGIN
+    BEGIN TRANSACTION
+    BEGIN TRY
+        DECLARE @Enfermedad VARCHAR(50)
+        SELECT @Enfermedad = Enfermedad FROM Niño WHERE CURP = @CurpNino
+        DELETE FROM Niño WHERE CURP = @CurpNino
+        IF @Enfermedad IN ('Epilepsia', 'Diabetes', 'Problemas cardíacos')
+            PRINT 'ALERTA: Se eliminó un niño con enfermedad grave: ' + @CurpNino
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        THROW
+    END CATCH
+END
+GO
+
+-- TRIGGERS
+
+
+-- un tutor no tenga más de 5 niños asignados
+CREATE TRIGGER trg_MaxNinosPorTutor
+ON Niño
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT CurpTutor
+        FROM Niño
+        GROUP BY CurpTutor
+        HAVING COUNT(*) > 5
+    )
+    BEGIN
+        ROLLBACK TRANSACTION
+        RAISERROR('Un tutor no puede tener más de 5 niños asignados.', 16, 1)
+    END
+END
+GO
+
+-- Registra en una auditoría cada vez que se elimina un niño
+CREATE TABLE IF NOT EXISTS AuditoriaEliminacionNino (
+    CURP CHAR(18),
+    FechaEliminacion DATETIME,
+    Usuario NVARCHAR(100)
+)
+GO
+
+CREATE TRIGGER trg_AuditoriaEliminacionNino
+ON Niño
+AFTER DELETE
+AS
+BEGIN
+    INSERT INTO AuditoriaEliminacionNino (CURP, FechaEliminacion, Usuario)
+    SELECT d.CURP, GETDATE(), SYSTEM_USER
+    FROM deleted d
+END
+GO
+
+-- omitir que se cambie la especialidad de nivel 3 a un nivel menor
+CREATE TRIGGER trg_OmitirBajaNivelEspecialidad
+ON Especialidad
+AFTER UPDATE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN deleted d ON i.ClaveEspecialidad = d.ClaveEspecialidad
+        WHERE d.Nivel = 3 AND i.Nivel < 3
+    )
+    BEGIN
+        ROLLBACK TRANSACTION
+        RAISERROR('No se puede bajar el nivel de una especialidad avanzada.', 16, 1)
+    END
+END
+GO
+
+-- cuida que un niño tenga una enfermedad vacía
+CREATE TRIGGER trg_EnfermedadNoVacia
+ON Niño
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM inserted WHERE Enfermedad IS NULL OR Enfermedad = '')
+    BEGIN
+        ROLLBACK TRANSACTION
+        RAISERROR('El campo Enfermedad no puede estar vacío.', 16, 1)
+    END
+END
+GO
+
+--Registra en una auditoría cada vez que se actualiza el tutor de un niño
+CREATE TABLE IF NOT EXISTS AuditoriaCambioTutor (
+    CURP_Nino CHAR(18),
+    TutorAnterior CHAR(18),
+    TutorNuevo CHAR(18),
+    FechaCambio DATETIME,
+    Usuario NVARCHAR(100)
+)
+GO
+
+CREATE TRIGGER trg_AuditoriaCambioTutor
+ON Niño
+AFTER UPDATE
+AS
+BEGIN
+    IF UPDATE(CurpTutor)
+    BEGIN
+        INSERT INTO AuditoriaCambioTutor (CURP_Nino, TutorAnterior, TutorNuevo, FechaCambio, Usuario)
+        SELECT d.CURP, d.CurpTutor, i.CurpTutor, GETDATE(), SYSTEM_USER
+        FROM deleted d
+        JOIN inserted i ON d.CURP = i.CURP
+        WHERE d.CurpTutor <> i.CurpTutor
+    END
+END
+GO
+
+-- Previene que se elimine un club si tiene directivos asignados
+CREATE TRIGGER trg_PrevenirEliminacionClubConDirectivos
+ON Club
+INSTEAD OF DELETE
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM Directivo d WHERE d.ClaveClubDirectivo IN (SELECT ClaveClub FROM deleted))
+    BEGIN
+        RAISERROR('No se puede eliminar un club con directivos asignados.', 16, 1)
+        RETURN
+    END
+    DELETE FROM Club WHERE ClaveClub IN (SELECT ClaveClub FROM deleted)
+END
+GO
+
+-- Previene que se elimine un tutor si tiene niños asignados
+CREATE TRIGGER trg_PrevenirEliminacionTutorConNinos
+ON Tutor
+INSTEAD OF DELETE
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM Niño n WHERE n.CurpTutor IN (SELECT CURP FROM deleted))
+    BEGIN
+        RAISERROR('No se puede eliminar un tutor con niños asignados.', 16, 1)
+        RETURN
+    END
+    DELETE FROM Tutor WHERE CURP IN (SELECT CURP FROM deleted)
+END
+GO
+
+-- Auditoría hace cambios en la tabla Persona
+CREATE TABLE IF NOT EXISTS AuditoriaPersona (
+    CURP CHAR(18),
+    Accion NVARCHAR(10),
+    Fecha DATETIME,
+    Usuario NVARCHAR(100)
+)
+GO
+
+CREATE TRIGGER trg_AuditoriaPersona
+ON Persona
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM inserted)
+        INSERT INTO AuditoriaPersona (CURP, Accion, Fecha, Usuario)
+        SELECT CURP, 'INSERT/UPDATE', GETDATE(), SYSTEM_USER FROM inserted
+    IF EXISTS (SELECT 1 FROM deleted)
+        INSERT INTO AuditoriaPersona (CURP, Accion, Fecha, Usuario)
+        SELECT CURP, 'DELETE', GETDATE(), SYSTEM_USER FROM deleted
+END
+GO
+
+--Previene que se elimine una unidad si tiene niños asignados
+CREATE TRIGGER trg_PrevenirEliminacionUnidadConNinos
+ON Unidad
+INSTEAD OF DELETE
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM Niño n WHERE n.ClaveUnidadNino IN (SELECT ClaveUnidad FROM deleted))
+    BEGIN
+        RAISERROR('No se puede eliminar una unidad con niños asignados.', 16, 1)
+        RETURN
+    END
+    DELETE FROM Unidad WHERE ClaveUnidad IN (SELECT ClaveUnidad FROM deleted)
+END
+GO
+
+--  Auditoría de cambios en la tabla Especialidad
+CREATE TABLE IF NOT EXISTS AuditoriaEspecialidad (
+    ClaveEspecialidad VARCHAR(15),
+    Accion NVARCHAR(10),
+    Fecha DATETIME,
+    Usuario NVARCHAR(100)
+)
+GO
+
+CREATE TRIGGER trg_AuditoriaEspecialidad
+ON Especialidad
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM inserted)
+        INSERT INTO AuditoriaEspecialidad (ClaveEspecialidad, Accion, Fecha, Usuario)
+        SELECT ClaveEspecialidad, 'INSERT/UPDATE', GETDATE(), SYSTEM_USER FROM inserted
+    IF EXISTS (SELECT 1 FROM deleted)
+        INSERT INTO AuditoriaEspecialidad (ClaveEspecialidad, Accion, Fecha, Usuario)
+        SELECT ClaveEspecialidad, 'DELETE', GETDATE(), SYSTEM_USER FROM deleted
+END
+GO
+
+--  Previene que se elimine un directivo si es el único del club
+CREATE TRIGGER trg_PrevenirEliminacionUnicoDirectivo
+ON Directivo
+INSTEAD OF DELETE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM deleted d
+        WHERE (SELECT COUNT(*) FROM Directivo WHERE ClaveClubDirectivo = d.ClaveClubDirectivo) = 1
+    )
+    BEGIN
+        RAISERROR('No se puede eliminar el único directivo de un club.', 16, 1)
+        RETURN
+    END
+    DELETE FROM Directivo WHERE CURP IN (SELECT CURP FROM deleted)
+END
+GO
+
+--  Previene que se elimine una especialidad si está asignada a requisitos
+CREATE TRIGGER trg_PrevenirEliminacionEspecialidadConRequisito
+ON Especialidad
+INSTEAD OF DELETE
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM Requisito r WHERE r.ClaveEspecialidadRequisito IN (SELECT ClaveEspecialidad FROM deleted))
+    BEGIN
+        RAISERROR('No se puede eliminar una especialidad asignada a requisitos.', 16, 1)
+        RETURN
+    END
+    DELETE FROM Especialidad WHERE ClaveEspecialidad IN (SELECT ClaveEspecialidad FROM deleted)
+END
+GO
+
+-- 13. Previene que se elimine un consejero si tiene unidades asignadas
+CREATE TRIGGER trg_PrevenirEliminacionConsejeroConUnidades
+ON Consejero
+INSTEAD OF DELETE
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM Unidad u WHERE u.CurpConsejero IN (SELECT CURP FROM deleted))
+    BEGIN
+        RAISERROR('No se puede eliminar un consejero con unidades asignadas.', 16, 1)
+        RETURN
+    END
+    DELETE FROM Consejero WHERE CURP IN (SELECT CURP FROM deleted)
+END
+GO
+
+--  Auditoría de cambios en la tabla Reunion
+CREATE TABLE IF NOT EXISTS AuditoriaReunion (
+    ClaveReunion VARCHAR(15),
+    Accion NVARCHAR(10),
+    Fecha DATETIME,
+    Usuario NVARCHAR(100)
+)
+GO
+
+CREATE TRIGGER trg_AuditoriaReunion
+ON Reunion
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM inserted)
+        INSERT INTO AuditoriaReunion (ClaveReunion, Accion, Fecha, Usuario)
+        SELECT ClaveReunion, 'INSERT/UPDATE', GETDATE(), SYSTEM_USER FROM inserted
+    IF EXISTS (SELECT 1 FROM deleted)
+        INSERT INTO AuditoriaReunion (ClaveReunion, Accion, Fecha, Usuario)
+        SELECT ClaveReunion, 'DELETE', GETDATE(), SYSTEM_USER FROM deleted
+END
+GO
+
+--  Previene que se elimine una clase si hay niños asignados
+CREATE TRIGGER trg_PrevenirEliminacionClaseConNinos
+ON Clase
+INSTEAD OF DELETE
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM Niño n WHERE n.ClaveClaseNino IN (SELECT NumeroClase FROM deleted))
+    BEGIN
+        RAISERROR('No se puede eliminar una clase con niños asignados.', 16, 1)
+        RETURN
+    END
+    DELETE FROM Clase WHERE NumeroClase IN (SELECT NumeroClase FROM deleted)
+END
+GO
+
+--  Previene que se elimine un instructor si tiene especialidades asignadas
+CREATE TRIGGER trg_PrevenirEliminacionInstructorConEspecialidades
+ON Instructor
+INSTEAD OF DELETE
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM Especialidad e WHERE e.CurpInstructor IN (SELECT CURP FROM deleted))
+    BEGIN
+        RAISERROR('No se puede eliminar un instructor con especialidades asignadas.', 16, 1)
+        RETURN
+    END
+    DELETE FROM Instructor WHERE CURP IN (SELECT CURP FROM deleted)
+END
+GO
+
+--  Auditoría de cambios en la tabla Tutor
+CREATE TABLE IF NOT EXISTS AuditoriaTutor (
+    CURP CHAR(18),
+    Accion NVARCHAR(10),
+    Fecha DATETIME,
+    Usuario NVARCHAR(100)
+)
+GO
+
+CREATE TRIGGER trg_AuditoriaTutor
+ON Tutor
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM inserted)
+        INSERT INTO AuditoriaTutor (CURP, Accion, Fecha, Usuario)
+        SELECT CURP, 'INSERT/UPDATE', GETDATE(), SYSTEM_USER FROM inserted
+    IF EXISTS (SELECT 1 FROM deleted)
+        INSERT INTO AuditoriaTutor (CURP, Accion, Fecha, Usuario)
+        SELECT CURP, 'DELETE', GETDATE(), SYSTEM_USER FROM deleted
+END
+GO
+
+--  Previene que se elimine un niño si tiene historial
+CREATE TRIGGER trg_PrevenirEliminacionNinoConHistorial
+ON Niño
+INSTEAD OF DELETE
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM Historial h WHERE h.CurpPersona IN (SELECT CURP FROM deleted))
+    BEGIN
+        RAISERROR('No se puede eliminar un niño con historial.', 16, 1)
+        RETURN
+    END
+    DELETE FROM Niño WHERE CURP IN (SELECT CURP FROM deleted)
+END
+GO
+
+--  Previene que se elimine un directivo si es presidente
+CREATE TRIGGER trg_PrevenirEliminacionPresidente
+ON Directivo
+INSTEAD OF DELETE
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM deleted WHERE ROL = 'Presidente')
+    BEGIN
+        RAISERROR('No se puede eliminar un presidente de club directamente.', 16, 1)
+        RETURN
+    END
+    DELETE FROM Directivo WHERE CURP IN (SELECT CURP FROM deleted)
+END
+GO
+
+-- Previene que se elimine una reunión si es la única de la unidad
+CREATE TRIGGER trg_PrevenirEliminacionUnicaReunionUnidad
+ON Reunion
+INSTEAD OF DELETE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM deleted d
+        WHERE (SELECT COUNT(*) FROM Reunion WHERE ClaveUnidadReunion = d.ClaveUnidadReunion) = 1
+    )
+    BEGIN
+        RAISERROR('No se puede eliminar la única reunión de una unidad.', 16, 1)
+        RETURN
+    END
+    DELETE FROM Reunion WHERE ClaveReunion IN (SELECT ClaveReunion FROM deleted)
+END
+GO
+
+
+-- Auditar cambio de unidad de un niño
+CREATE TRIGGER trg_AuditoriaCambioUnidadNino
+ON Niño
+AFTER UPDATE
+AS
+BEGIN
+    IF UPDATE(ClaveUnidadNino)
+    BEGIN
+        INSERT INTO AuditoriaCambioUnidadNino (CURP, UnidadAnterior, UnidadNueva, FechaCambio, Usuario)
+        SELECT d.CURP, d.ClaveUnidadNino, i.ClaveUnidadNino, GETDATE(), SYSTEM_USER
+        FROM deleted d
+        JOIN inserted i ON d.CURP = i.CURP
+        WHERE d.ClaveUnidadNino <> i.ClaveUnidadNino
+    END
+END
+GO
+
+-- Validar que un niño no sea asignado a una clase para la que no cumple la edad mínima
+CREATE TRIGGER trg_ValidarEdadClaseNino
+ON Niño
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM inserted i
+        JOIN Clase c ON i.ClaveClaseNino = c.NumeroClase
+        JOIN Persona p ON i.CURP = p.CURP
+        WHERE DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < c.EdadMinima
+    )
+    BEGIN
+        ROLLBACK TRANSACTION
+        RAISERROR('El niño no cumple la edad mínima para la clase asignada.', 16, 1)
+    END
+END
+GO
+
+--Auditar cambio de tutor de un niño
+CREATE TABLE IF NOT EXISTS AuditoriaCambioTutorNino (
+    CURP_Nino CHAR(18),
+    TutorAnterior CHAR(18),
+    TutorNuevo CHAR(18),
+    FechaCambio DATETIME,
+    Usuario NVARCHAR(100)
+)
+GO
+
+CREATE TRIGGER trg_AuditoriaCambioTutorNino
+ON Niño
+AFTER UPDATE
+AS
+BEGIN
+    IF UPDATE(CurpTutor)
+    BEGIN
+        INSERT INTO AuditoriaCambioTutorNino (CURP_Nino, TutorAnterior, TutorNuevo, FechaCambio, Usuario)
+        SELECT d.CURP, d.CurpTutor, i.CurpTutor, GETDATE(), SYSTEM_USER
+        FROM deleted d
+        JOIN inserted i ON d.CURP = i.CURP
+        WHERE d.CurpTutor <> i.CurpTutor
+    END
+END
+GO
+
+--  Auditar cambio de consejero en unidad
+CREATE TRIGGER trg_AuditoriaCambioConsejeroUnidad
+ON Unidad
+AFTER UPDATE
+AS
+BEGIN
+    IF UPDATE(CurpConsejero)
+    BEGIN
+        INSERT INTO AuditoriaCambioConsejeroUnidad (ClaveUnidad, ConsejeroAnterior, ConsejeroNuevo, FechaCambio, Usuario)
+        SELECT d.ClaveUnidad, d.CurpConsejero, i.CurpConsejero, GETDATE(), SYSTEM_USER
+        FROM deleted d
+        JOIN inserted i ON d.ClaveUnidad = i.ClaveUnidad
+        WHERE d.CurpConsejero <> i.CurpConsejero
+    END
+END
+GO
+
+-- Auditar cambio de instructor en especialidad
+CREATE TRIGGER trg_AuditoriaCambioInstructorEspecialidad
+ON Especialidad
+AFTER UPDATE
+AS
+BEGIN
+    IF UPDATE(CurpInstructor)
+    BEGIN
+        INSERT INTO AuditoriaCambioInstructorEspecialidad (ClaveEspecialidad, InstructorAnterior, InstructorNuevo, FechaCambio, Usuario)
+        SELECT d.ClaveEspecialidad, d.CurpInstructor, i.CurpInstructor, GETDATE(), SYSTEM_USER
+        FROM deleted d
+        JOIN inserted i ON d.ClaveEspecialidad = i.ClaveEspecialidad
+        WHERE d.CurpInstructor <> i.CurpInstructor
+    END
+END
+GO
+
+-- Si se elimina un directivo presidente, dejar registro en auditoría
+CREATE TABLE IF NOT EXISTS AuditoriaEliminacionPresidente (
+    CURP CHAR(18),
+    ClaveClub VARCHAR(15),
+    FechaEliminacion DATETIME,
+    Usuario NVARCHAR(100)
+)
+GO
+
+CREATE TRIGGER trg_AuditoriaEliminacionPresidente
+ON Directivo
+AFTER DELETE
+AS
+BEGIN
+    INSERT INTO AuditoriaEliminacionPresidente (CURP, ClaveClub, FechaEliminacion, Usuario)
+    SELECT d.CURP, d.ClaveClubDirectivo, GETDATE(), SYSTEM_USER
+    FROM deleted d
+    WHERE d.ROL = 'Presidente'
+END
+GO
+
+-- Si se elimina una reunión, registrar en auditoría
+CREATE TABLE IF NOT EXISTS AuditoriaEliminacionReunion (
+    ClaveReunion VARCHAR(15),
+    FechaEliminacion DATETIME,
+    Usuario NVARCHAR(100)
+)
+GO
+
+CREATE TRIGGER trg_AuditoriaEliminacionReunion
+ON Reunion
+AFTER DELETE
+AS
+BEGIN
+    INSERT INTO AuditoriaEliminacionReunion (ClaveReunion, FechaEliminacion, Usuario)
+    SELECT d.ClaveReunion, GETDATE(), SYSTEM_USER
+    FROM deleted d
+END
+GO
+
+-- Si se actualiza el nivel de una especialidad, registrar en auditoría
+CREATE TABLE IF NOT EXISTS AuditoriaCambioNivelEspecialidad (
+    ClaveEspecialidad VARCHAR(15),
+    NivelAnterior INT,
+    NivelNuevo INT,
+    FechaCambio DATETIME,
+    Usuario NVARCHAR(100)
+)
+GO
+
+CREATE TRIGGER trg_AuditoriaCambioNivelEspecialidad
+ON Especialidad
+AFTER UPDATE
+AS
+BEGIN
+    IF UPDATE(Nivel)
+    BEGIN
+        INSERT INTO AuditoriaCambioNivelEspecialidad (ClaveEspecialidad, NivelAnterior, NivelNuevo, FechaCambio, Usuario)
+        SELECT d.ClaveEspecialidad, d.Nivel, i.Nivel, GETDATE(), SYSTEM_USER
+        FROM deleted d
+        JOIN inserted i ON d.ClaveEspecialidad = i.ClaveEspecialidad
+        WHERE d.Nivel <> i.Nivel
+    END
+END
+GO
+
+-- Si se elimina un niño, registrar en auditoría
+CREATE TABLE IF NOT EXISTS AuditoriaEliminacionNinoAvanzada (
+    CURP CHAR(18),
+    FechaEliminacion DATETIME,
+    Usuario NVARCHAR(100)
+)
+GO
+
+CREATE TRIGGER trg_AuditoriaEliminacionNinoAvanzada
+ON Niño
+AFTER DELETE
+AS
+BEGIN
+    INSERT INTO AuditoriaEliminacionNinoAvanzada (CURP, FechaEliminacion, Usuario)
+    SELECT d.CURP, GETDATE(), SYSTEM_USER
+    FROM deleted d
+END
+GO
+
+-- Si se elimina un club, registrar en auditoría
+CREATE TABLE IF NOT EXISTS AuditoriaEliminacionClub (
+    ClaveClub VARCHAR(15),
+    FechaEliminacion DATETIME,
+    Usuario NVARCHAR(100)
+)
+GO
+
+CREATE TRIGGER trg_AuditoriaEliminacionClub
+ON Club
+AFTER DELETE
+AS
+BEGIN
+    INSERT INTO AuditoriaEliminacionClub (ClaveClub, FechaEliminacion, Usuario)
+    SELECT d.ClaveClub, GETDATE(), SYSTEM_USER
+    FROM deleted d
+END
+GO
+
+-- Solo audita si el directivo es Presidente o Tesorero
+CREATE TRIGGER trg_AuditoriaCambioDirectivoCritico
+ON Directivo
+AFTER UPDATE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM inserted i
+        JOIN deleted d ON i.CURP = d.CURP
+        WHERE (i.ROL IN ('Presidente', 'Tesorero') OR d.ROL IN ('Presidente', 'Tesorero'))
+          AND (i.ClaveClubDirectivo <> d.ClaveClubDirectivo)
+    )
+    BEGIN
+        INSERT INTO AuditoriaCambioClubDirectivo (CURP, ClubAnterior, ClubNuevo, FechaCambio, Usuario)
+        SELECT d.CURP, d.ClaveClubDirectivo, i.ClaveClubDirectivo, GETDATE(), SYSTEM_USER
+        FROM inserted i
+        JOIN deleted d ON i.CURP = d.CURP
+        WHERE (i.ROL IN ('Presidente', 'Tesorero') OR d.ROL IN ('Presidente', 'Tesorero'))
+          AND (i.ClaveClubDirectivo <> d.ClaveClubDirectivo)
+    END
+END
+GO
+
+-- Si un club supera 3 directivos, registra en auditoría y envía alerta (simulada con PRINT)
+CREATE TRIGGER trg_AuditoriaClubDirectivosExceso
+ON Directivo
+AFTER INSERT
+AS
+BEGIN
+    IF EXISTS (
+        SELECT ClaveClubDirectivo FROM Directivo
+        GROUP BY ClaveClubDirectivo
+        HAVING COUNT(*) > 3
+    )
+    BEGIN
+        DECLARE @Club VARCHAR(15)
+        SELECT TOP 1 @Club = ClaveClubDirectivo FROM Directivo
+        GROUP BY ClaveClubDirectivo
+        HAVING COUNT(*) > 3
+
+        INSERT INTO AuditoriaCambioClubDirectivo (CURP, ClubAnterior, ClubNuevo, FechaCambio, Usuario)
+        SELECT i.CURP, NULL, @Club, GETDATE(), SYSTEM_USER FROM inserted i WHERE i.ClaveClubDirectivo = @Club
+
+        PRINT 'ALERTA: El club ' + @Club + ' tiene más de 3 directivos.'
+    END
+END
+GO
+
+-- Si se cambia la edad mínima de una clase, recalcula y actualiza la edad promedio de los niños en esa clase
+CREATE TABLE IF NOT EXISTS EstadisticaClase (
+    NumeroClase INT,
+    EdadPromedio DECIMAL(5,2),
+    FechaActualizacion DATETIME
+)
+GO
+
+CREATE TRIGGER trg_AuditoriaYRecalculoEdadClase
+ON Clase
+AFTER UPDATE
+AS
+BEGIN
+    IF UPDATE(EdadMinima)
+    BEGIN
+        DECLARE @Clase INT
+        SELECT @Clase = i.NumeroClase FROM inserted i
+
+        DECLARE @Promedio DECIMAL(5,2)
+        SELECT @Promedio = AVG(DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()))
+        FROM Niño n
+        JOIN Persona p ON n.CURP = p.CURP
+        WHERE n.ClaveClaseNino = @Clase
+
+        IF EXISTS (SELECT 1 FROM EstadisticaClase WHERE NumeroClase = @Clase)
+            UPDATE EstadisticaClase SET EdadPromedio = @Promedio, FechaActualizacion = GETDATE() WHERE NumeroClase = @Clase
+        ELSE
+            INSERT INTO EstadisticaClase (NumeroClase, EdadPromedio, FechaActualizacion) VALUES (@Clase, @Promedio, GETDATE())
+    END
+END
+GO
+
+
+-- Si se intenta bajar el nivel de una especialidad avanzada, audita y bloquea solo si el instructor es nuevo (menos de 1 año)
+CREATE TRIGGER trg_BloqueaBajaNivelInstructorNuevo
+ON Especialidad
+AFTER UPDATE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN deleted d ON i.ClaveEspecialidad = d.ClaveEspecialidad
+        JOIN Instructor ins ON i.CurpInstructor = ins.CURP
+        JOIN Persona p ON ins.CURP = p.CURP
+        WHERE d.Nivel = 3 AND i.Nivel < 3
+          AND DATEDIFF(YEAR, p.FechaNacimiento, GETDATE()) < 1
+    )
+    BEGIN
+        RAISERROR('No se puede bajar el nivel de una especialidad avanzada si el instructor es nuevo.', 16, 1)
+        ROLLBACK TRANSACTION
+        RETURN
+    END
+END
+GO
+
+-- Si se elimina un niño, recalcula y actualiza el total de niños por tutor
+CREATE TABLE IF NOT EXISTS EstadisticaTutor (
+    CURP_Tutor CHAR(18),
+    TotalNinos INT,
+    FechaActualizacion DATETIME
+)
+GO
+
+CREATE TRIGGER trg_AuditoriaYRecalculoTutor
+ON Niño
+AFTER DELETE
+AS
+BEGIN
+    DECLARE @Tutor CHAR(18)
+    DECLARE cur CURSOR FOR SELECT CurpTutor FROM deleted
+    OPEN cur
+    FETCH NEXT FROM cur INTO @Tutor
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        DECLARE @Total INT
+        SELECT @Total = COUNT(*) FROM Niño WHERE CurpTutor = @Tutor
+        IF EXISTS (SELECT 1 FROM EstadisticaTutor WHERE CURP_Tutor = @Tutor)
+            UPDATE EstadisticaTutor SET TotalNinos = @Total, FechaActualizacion = GETDATE() WHERE CURP_Tutor = @Tutor
+        ELSE
+            INSERT INTO EstadisticaTutor (CURP_Tutor, TotalNinos, FechaActualizacion) VALUES (@Tutor, @Total, GETDATE())
+        FETCH NEXT FROM cur INTO @Tutor
+    END
+    CLOSE cur
+    DEALLOCATE cur
+END
+GO
+
+-- Audita y bloquea si se intenta cambiar el club de un Presidente a un club que ya tiene Presidente
+CREATE TRIGGER trg_BloqueaDosPresidentes
+ON Directivo
+AFTER UPDATE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN deleted d ON i.CURP = d.CURP
+        WHERE i.ROL = 'Presidente'
+          AND i.ClaveClubDirectivo <> d.ClaveClubDirectivo
+          AND EXISTS (
+              SELECT 1 FROM Directivo
+              WHERE ClaveClubDirectivo = i.ClaveClubDirectivo AND ROL = 'Presidente'
+          )
+    )
+    BEGIN
+        RAISERROR('No puede haber dos presidentes en el mismo club.', 16, 1)
+        ROLLBACK TRANSACTION
+        RETURN
+    END
+    -- Si no hay conflicto, audita el cambio
+    IF UPDATE(ClaveClubDirectivo)
+    BEGIN
+        INSERT INTO AuditoriaCambioClubDirectivo (CURP, ClubAnterior, ClubNuevo, FechaCambio, Usuario)
+        SELECT d.CURP, d.ClaveClubDirectivo, i.ClaveClubDirectivo, GETDATE(), SYSTEM_USER
+        FROM inserted i
+        JOIN deleted d ON i.CURP = d.CURP
+        WHERE d.ClaveClubDirectivo <> i.ClaveClubDirectivo
+    END
+END
+GO

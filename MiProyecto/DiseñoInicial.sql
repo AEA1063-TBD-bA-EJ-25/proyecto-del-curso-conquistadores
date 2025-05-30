@@ -2245,35 +2245,6 @@ GROUP BY c.Nombre,
 /* SP Y TRIGGERS */
 
 -- PROCEDIMIENTOS ALMACENADOS 
--- Registra a un niño y un tutor 
-CREATE PROCEDURE SP_RegistrarNinoYtutor
-    @CurpNino CHAR(18), @NombresNino NVARCHAR(50), @ApellidoPaternoNino NVARCHAR(50), @ApellidoMaternoNino NVARCHAR(50),
-    @SexoNino VARCHAR(10), @FechaNacimientoNino DATE, @DireccionNino VARCHAR(80), @Enfermedad VARCHAR(50),
-    @ContactoEmergencia VARCHAR(25), @ClaveClaseNino INT, @CurpTutor CHAR(18), @NombresTutor NVARCHAR(50),
-    @ApellidoPaternoTutor NVARCHAR(50), @ApellidoMaternoTutor NVARCHAR(50), @SexoTutor VARCHAR(10),
-    @FechaNacimientoTutor DATE, @DireccionTutor VARCHAR(80), @TelefonoTutor VARCHAR(10), @ClaveUnidadNino INT
-AS
-BEGIN
-    BEGIN TRANSACTION
-    BEGIN TRY
-        IF NOT EXISTS (SELECT 1 FROM Persona WHERE CURP = @CurpTutor)
-        BEGIN
-            INSERT INTO Persona (CURP, ApellidoPaterno, ApellidoMaterno, Nombres, Sexo, FechaNacimiento, Direccion, Tipo)
-            VALUES (@CurpTutor, @ApellidoPaternoTutor, @ApellidoMaternoTutor, @NombresTutor, @SexoTutor, @FechaNacimientoTutor, @DireccionTutor, 'Tutor');
-            INSERT INTO Tutor (CURP, Telefono) VALUES (@CurpTutor, @TelefonoTutor);
-        END
-        INSERT INTO Persona (CURP, ApellidoPaterno, ApellidoMaterno, Nombres, Sexo, FechaNacimiento, Direccion, Tipo)
-        VALUES (@CurpNino, @ApellidoPaternoNino, @ApellidoMaternoNino, @NombresNino, @SexoNino, @FechaNacimientoNino, @DireccionNino, 'Niño');
-        INSERT INTO Niño (CURP, Enfermedad, ContactoEmergencia, ClaveClaseNino, CurpTutor, ClaveUnidadNino)
-        VALUES (@CurpNino, @Enfermedad, @ContactoEmergencia, @ClaveClaseNino, @CurpTutor, @ClaveUnidadNino);
-        COMMIT TRANSACTION
-    END TRY
-    BEGIN CATCH
-        ROLLBACK TRANSACTION
-        THROW
-    END CATCH
-END
-GO
 
 --  Cambia de unidad a todos los niños de una clase 
 CREATE PROCEDURE SP_CambiarUnidadNinosPorClase
